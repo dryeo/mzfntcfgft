@@ -1,0 +1,60 @@
+   Dependent lib for Mozilla Cairo builds
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Setting it up
+To make use of this package for compilation of a Mozilla build that
+makes use of the cairo library, you need a GCC, and various other
+libraries and environment variables set. Please follow the guide at
+<http://www.mozilla.org/ports/os2/gccsetup.html> how to do this. In
+particular you will need to adapt the setmozenv.cmd script to your
+environment.
+
+Move the whole directory containing this package where you want it
+installed and then run 
+   make -s
+   make clean
+This compiles all files, links them into mozftlib DLL and adapts the
+installation to your directory tree. Then it removes the unnecessary
+object files.
+
+Now be sure to also adapt the FONTCONFIG and FREETYPE variables in
+your setmozenv.cmd, so that this package can be used by the Mozilla
+build process. In case your setmozenv.cmd does _not_ yet contain
+these variables add the following lines:
+
+  'set FREETYPE=<your_install_dir>'
+  'SET FREETYPE2='backtoforward(value('FREETYPE',,'OS2ENVIRONMENT'));
+  'set FONTCONFIG=<your_install_dir>'
+  'SET FONTCONFIG2='backtoforward(value('FONTCONFIG',,'OS2ENVIRONMENT'));
+
+
+- Cairo files
+As the official cairo (and hence Mozilla) sources don't yet contain
+cairo for OS/2, you have to copy the files from one of the cairo_*
+subdirectories into your mozilla tree at
+   mozilla\gfx\cairo\cairo\src
+When doing that be sure to overwrite the existing cairo-features.h.in.
+
+
+- Sources
+The required source code is contained in this package. It is compiled
+from bits of the packages
+   expat-1.95.8
+   fontconfig-2.3.2-os2
+   freetype-2.1.10
+All these packages were drawn from Doodle's package
+   ftp://ftp.netlabs.org/pub/Cairo/cairo-1.0.4-os2-src-with-dependencies.zip
+
+
+- Copyright
+See mozftcfg.COPYING for copyright information. That file contains the
+required copyright notes from all three base packages. If you want to
+ship a Mozilla build containing cairo, please be sure to copy both 
+mozftcfg.COPYING and mozftcfg.dll into the program directory.
+
+
+- Contact person
+If you want to complain please post to the group mozilla.dev.ports.os2
+on the newsserver news.mozilla.org.
+
+Peter Weilbacher <mozilla@Weilbacher.org>, 22Apr2006
