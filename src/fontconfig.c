@@ -1,3 +1,8 @@
+/*
+ * This code is (C) Netlabs.org
+ * Author: Doodle <doodle@scenergy.dfmk.hu>
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -10,8 +15,14 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#ifndef CACHE_VERSION_STRING
-# define CACHE_VERSION_STRING "v1.0_with_OpenWatcom"
+#ifndef FC_CACHE_VERSION_STRING
+# define FC_CACHE_VERSION_STRING "v1.0_with_GCC"
+#endif
+
+#ifdef FC_EXPORT_FUNCTIONS
+# define fcExport __declspec(dllexport)
+#else
+# define fcExport
 #endif
 
 #define MAX_FONTLISTSIZE 4096
@@ -42,7 +53,7 @@ static FT_Library hFtLib;
 static FontDescriptionCache_p pFontDescriptionCacheHead;
 static FontDescriptionCache_p pFontDescriptionCacheLast;
 
-void FcFini()
+fcExport void FcFini()
 {
   FontDescriptionCache_p pToDelete;
 
@@ -90,7 +101,7 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName, cha
   FT_Done_Face(ftface);
 
   ulSize = sizeof(FontDescriptionCache_t);
-  rc = PrfWriteProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"CACHE_VERSION_STRING, pchFontName,
+  rc = PrfWriteProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING, pchFontName,
                            pFontCache,  ulSize);
 
   return rc;
@@ -114,7 +125,7 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
   /* Check if we have a cache entry with this font name in INI file */
   memset(&FontDesc, 0, sizeof(FontDesc));
   ulSize = sizeof(FontDesc);
-  rc = PrfQueryProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"CACHE_VERSION_STRING, pchFontName,
+  rc = PrfQueryProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING, pchFontName,
                            &FontDesc,  &ulSize);
   if ((ulSize!=sizeof(FontDesc)) || (!rc))
   {
@@ -161,7 +172,7 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
 
 }
 
-FcBool FcInit()
+fcExport FcBool FcInit()
 {
   ULONG ulBootDrive;
   char chBootDrive;
@@ -212,7 +223,7 @@ FcBool FcInit()
   return FcTrue;
 }
 
-FcPattern *FcPatternCreate (void)
+fcExport FcPattern *FcPatternCreate (void)
 {
   FcPattern *pResult = malloc(sizeof(FcPattern));
   if (pResult)
@@ -222,14 +233,14 @@ FcPattern *FcPatternCreate (void)
   return pResult;
 }
 
-void FcPatternDestroy (FcPattern *p)
+fcExport void FcPatternDestroy (FcPattern *p)
 {
   if (p->family)
     free(p->family);
   free(p);
 }
 
-FcBool FcConfigSubstitute (FcConfig	*config,
+fcExport FcBool FcConfigSubstitute (FcConfig	*config,
                            FcPattern	*p,
                            FcMatchKind	kind)
 {
@@ -237,12 +248,12 @@ FcBool FcConfigSubstitute (FcConfig	*config,
   return FcTrue;
 }
 
-void FcDefaultSubstitute (FcPattern *pattern)
+fcExport void FcDefaultSubstitute (FcPattern *pattern)
 {
   // STUB
 }
 
-FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int n, int *i)
+fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int n, int *i)
 {
   if (strcmp(object, FC_INDEX)==0)
   {
@@ -257,7 +268,7 @@ FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int n, int
   return FcResultNoMatch;
 }
 
-FcResult FcPatternGetString (const FcPattern *p, const char *object, int n, FcChar8 ** s)
+fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, int n, FcChar8 ** s)
 {
   if (strcmp(object, FC_FILE)==0)
   {
@@ -267,7 +278,7 @@ FcResult FcPatternGetString (const FcPattern *p, const char *object, int n, FcCh
   return FcResultNoMatch;
 }
 
-FcResult FcPatternGetBool (const FcPattern *p, const char *object, int n, FcBool *b)
+fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int n, FcBool *b)
 {
   if (strcmp(object, FC_HINTING)==0)
   {
@@ -282,7 +293,7 @@ FcResult FcPatternGetBool (const FcPattern *p, const char *object, int n, FcBool
   return FcResultNoMatch;
 }
 
-FcResult FcPatternGet (const FcPattern *p, const char *object, int id, FcValue *v)
+fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, FcValue *v)
 {
   if (strcmp(object, FC_ANTIALIAS)==0)
   {
@@ -294,7 +305,7 @@ FcResult FcPatternGet (const FcPattern *p, const char *object, int id, FcValue *
 }
 
 
-FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
+fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
 {
   if (strcmp(object, FC_SLANT)==0)
   {
@@ -315,7 +326,7 @@ FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
   return FcFalse;
 }
 
-FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
+fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
 {
   if (strcmp(object, FC_FAMILY)==0)
   {
@@ -331,7 +342,7 @@ FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
   return FcFalse;
 }
 
-FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
+fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 {
   // STUB
   return FcTrue;
@@ -341,45 +352,60 @@ FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 #define DEFAULT_SANSSERIF_FONT      "HELVETICA"
 #define DEFAULT_MONOSPACED_FONT     "COURIER"
 
-FcPattern *FcFontMatch (FcConfig	*config,
-                        FcPattern	*p,
-                        FcResult	*result)
+fcExport FcPattern *FcFontMatch (FcConfig	*config,
+                                 FcPattern	*p,
+                                 FcResult	*result)
 {
-  FontDescriptionCache_p pFont;
+  FontDescriptionCache_p pFont, pBestMatch;
+  int iBestMatchScore;
   char achKey[512];
   int bWeightOk;
   int bSlantOk;
 
-  // First try the exact match
   pFont = pFontDescriptionCacheHead;
+  pBestMatch = NULL;
+  iBestMatchScore = -1;
   while (pFont)
   {
     if ((p->family) && (strstr(pFont->achFamilyName, p->family)))
     {
+      // Family found, calculate score for it!
       if ( p->weight > FC_WEIGHT_NORMAL )
       {
         bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
       } else
         bWeightOk = 1;
-
+  
       if ( p->slant > FC_SLANT_ROMAN )
       {
         bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
       } else
         bSlantOk = 1;
 
-      if ((bWeightOk) && (bSlantOk))
+      // Check if this score is better than the previous best one
+      if (iBestMatchScore < bWeightOk*2 + bSlantOk)
       {
-        // Fount a good one!
-        break;
+        pBestMatch = pFont;
+        iBestMatchScore = bWeightOk*2 + bSlantOk;
+
+        // Check if it's a perfect match!
+        if ((bWeightOk) && (bSlantOk))
+        {
+          // Fount an exact match!
+          break;
+        }
       }
     }
     pFont = pFont->pNext;
   }
+  // Use the one if we've found something
+  if (pBestMatch)
+    pFont = pBestMatch;
 
   if (!pFont)
   {
-    // Did not find by exact match, search now with defaults!
+    // Did not find a good one by family name match,
+    // search now with default font families!
     if ( p->spacing == FC_MONO )
     {
       strncpy(achKey, DEFAULT_MONOSPACED_FONT, sizeof(achKey));
@@ -402,10 +428,13 @@ FcPattern *FcFontMatch (FcConfig	*config,
     }
 
     pFont = pFontDescriptionCacheHead;
+    pBestMatch = NULL;
+    iBestMatchScore = -1;
     while (pFont)
     {
       if (strstr(pFont->achFamilyName, achKey))
       {
+        // Family found, calculate score for it!
         if ( p->weight > FC_WEIGHT_NORMAL )
         {
           bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
@@ -418,29 +447,25 @@ FcPattern *FcFontMatch (FcConfig	*config,
         } else
           bSlantOk = 1;
 
-        if ((bWeightOk) && (bSlantOk))
+        // Check if this score is better than the previous best one
+        if (iBestMatchScore < bWeightOk*2 + bSlantOk)
         {
-          // Fount a good one!
-          break;
+          pBestMatch = pFont;
+          iBestMatchScore = bWeightOk*2 + bSlantOk;
+
+          // Check if it's a perfect match!
+          if ((bWeightOk) && (bSlantOk))
+          {
+            // Fount an exact match!
+            break;
+          }
         }
       }
       pFont = pFont->pNext;
     }
-
-    // If still not found, then forget about slant and weight
-    if (!pFont)
-    {
-      pFont = pFontDescriptionCacheHead;
-      while (pFont)
-      {
-        if (strstr(pFont->achFamilyName, achKey))
-        {
-          // Fount a good one!
-          break;
-        }
-        pFont = pFont->pNext;
-      }
-    }
+    // Use the one if we've found something
+    if (pBestMatch)
+      pFont = pBestMatch;
   }
 
   if (pFont)
