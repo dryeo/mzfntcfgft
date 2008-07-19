@@ -55,6 +55,11 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20080617  - fix problem with font styles introduced with FT 2.3.6
+          - update FontConfig to write its cache to a seperate INI file instead
+            of OS2.INI (by Doodle)
+          - make font cache more robust by removing obsolete fonts (by Doodle)
+          - This is the version used to build Firefox 3.0.
 20080615  - update to FreeType 2.3.6
           + remove unused Type42 driver from FreeType
           - improve emboldening
@@ -84,4 +89,4 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 2008-06-15
+Peter Weilbacher <mozilla@Weilbacher.org>, 2008-06-17

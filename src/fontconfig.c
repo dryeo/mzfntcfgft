@@ -1,11 +1,8 @@
 /*
  * This code is (C) Netlabs.org
- * Author: Doodle <doodle@scenergy.dfmk.hu>
+ * Author: Doodle <doodle@netlabs.org>
+ *         Peter Weilbacher <mozilla@weilbacher.org>
  *
- * Version history:
- *   v1.1 (2007/05/16) :
- *     - Implemented some missing functions for Mozilla,
- *       mostly about font sets.
  */
 
 #include <stdlib.h>
@@ -16,15 +13,18 @@
 #define INCL_DOS
 #define INCL_WIN
 #define INCL_DOSERRORS
+#define INCL_SHLERRORS
 #include <os2.h>
 #include <fontconfig/fontconfig.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#ifndef FC_CACHE_VERSION_STRING
-# define FC_CACHE_VERSION_STRING "v1.1_with_GCC"
+#ifdef FC_CACHE_VERSION_STRING
+#undef FC_CACHE_VERSION_STRING
 #endif
+#define FC_CACHE_VERSION_STRING "v1.2_with_GCC"
+
 
 #ifdef FC_EXPORT_FUNCTIONS
 # define fcExport __declspec(dllexport)
@@ -32,7 +32,7 @@
 # define fcExport
 #endif
 
-#define MAX_FONTLISTSIZE 4096
+//#define FONTCONFIG_DEBUG_PRINTF
 
 /* structure for the font cache in OS2.INI  */
 typedef struct FontDescriptionCache_s
@@ -68,6 +68,7 @@ struct _FcPattern
 
 
 static FT_Library hFtLib;
+static HINI       hiniFontCacheStorage;
 static FontDescriptionCache_p pFontDescriptionCacheHead;
 static FontDescriptionCache_p pFontDescriptionCacheLast;
 
@@ -94,14 +95,14 @@ static void ConstructINIKeyName(char *pchDestinationBuffer, unsigned int uiDesti
                                 char *pchFontName, long lFaceIndex)
 {
   snprintf(pchDestinationBuffer, uiDestinationBufferSize,
-           "%s%04ld", pchFontName, lFaceIndex);
+           "%s\\%04ld", pchFontName, lFaceIndex);
 }
 
 static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
                        char *pchFontFileName, long lFaceIndex)
 {
   FT_Face ftface;
-  int rc;
+  char achKeyName[128];
   ULONG ulSize;
 
   if (FT_New_Face(hFtLib, pchFontFileName, lFaceIndex, &ftface))
@@ -123,24 +124,39 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
     strncpy(pFontCache->achFamilyName,
             ftface->family_name,
             sizeof(pFontCache->achFamilyName));
+  else
+    memset(pFontCache->achFamilyName,
+           0,
+           sizeof(pFontCache->achFamilyName));
+
   if (ftface->style_name)
     strncpy(pFontCache->achStyleName,
             ftface->style_name,
             sizeof(pFontCache->achStyleName));
+  else
+    memset(pFontCache->achStyleName,
+           0,
+           sizeof(pFontCache->achStyleName));
+
   pFontCache->lFontIndex = lFaceIndex;
 
   FT_Done_Face(ftface);
 
+  // Ok, font cache entry prepared
+
+  /* Also add this to the cache */
   /* construct actual INI key from font name and number */
-  char achKeyName[128];
   ConstructINIKeyName(achKeyName, sizeof(achKeyName),
-                      pchFontName, lFaceIndex);
+                      pchFontFileName, lFaceIndex);
+#ifdef FONTCONFIG_DEBUG_PRINTF
+  fprintf(stderr, "XX: Cache is updated: [%s] : [%s]-%ld\n", achKeyName, pchFontFileName, lFaceIndex);
+#endif
   ulSize = sizeof(FontDescriptionCache_t);
   /* Store font cache in INI file */
-  rc = PrfWriteProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
-                           achKeyName, pFontCache, ulSize);
+  PrfWriteProfileData(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                      achKeyName, pFontCache, ulSize);
 
-  return rc;
+  return 1;
 }
 
 static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
@@ -154,6 +170,7 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
   long lNumFacesInFile;
   long lCurFace;
   int iLen = strlen(pchFontFileName);
+  char achKeyName[128];
 
   /* Modify filename if needed */
   if (stricmp(pchFontFileName + (iLen-4), ".OFM") == 0)
@@ -172,6 +189,9 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
   if (FT_Open_Face(hFtLib, &ftopenargs, -1, &ftface))
   {
     /* Could not load font. */
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Could not create cache for Font [%s] : [%s] as it could not be opened\n", pchFontName, pchFontFileName);
+#endif
     return;
   }
   lNumFacesInFile = ftface->num_faces;
@@ -182,21 +202,25 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
   for (lCurFace=0; lCurFace<lNumFacesInFile; lCurFace++)
   {
     /* Construct key name for font file + face index pair */
-    char achKeyName[128];
     ConstructINIKeyName(achKeyName, sizeof(achKeyName),
-                        pchFontName, lCurFace);
+                        pchFontFileName, lCurFace);
 
     /* Try to read back the font cache for this pair from the INI file */
     memset(&FontDesc, 0, sizeof(FontDesc));
     ulSize = sizeof(FontDesc);
-    rc = PrfQueryProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+    rc = PrfQueryProfileData(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
                              achKeyName,
                              &FontDesc,  &ulSize);
     if ((ulSize!=sizeof(FontDesc)) || (!rc))
     {
       /* Hm, there is no cache for this file, try to create it! */
       if (!CreateCache(&FontDesc, pchFontName, pchFontFileName, lCurFace))
+      {
+#ifdef FONTCONFIG_DEBUG_PRINTF
+        fprintf(stderr, "XX: Could not create cache for Font [%s] : [%s]-%ld\n", pchFontName, pchFontFileName, lCurFace);
+#endif
         continue;
+      }
     } else
     {
       struct stat statBuf;
@@ -211,6 +235,9 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
           (statBuf.st_mtime != FontDesc.FileStatus.st_mtime))
       {
         /* The cache is not up to date, so recreate it! */
+#ifdef FONTCONFIG_DEBUG_PRINTF
+        fprintf(stderr, "XX: Cache is not up to date, recreating it for Font [%s] : [%s]-%ld\n", pchFontName, pchFontFileName, lCurFace);
+#endif
         if (!CreateCache(&FontDesc, pchFontName, pchFontFileName, lCurFace))
           continue;
       }
@@ -231,6 +258,93 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
     {
       pFontDescriptionCacheLast = pFontDescriptionCacheHead = pNewFontCacheEntry;
     }
+  }
+}
+
+static void OpenCacheStorageIniFile()
+{
+  char achCacheStorageFilename[CCHMAXPATH];
+  char *pchEnvVar;
+
+  // Get home directory of current user
+  pchEnvVar = getenv("HOME");
+
+  hiniFontCacheStorage = NULLHANDLE;
+
+  // If we have the HOME variable set, then we'll try to use that
+  // otherwise fall back to the TEMP directory
+  if (pchEnvVar)
+  {
+    int iLen;
+    
+    snprintf(achCacheStorageFilename, sizeof(achCacheStorageFilename)-1, "%s", pchEnvVar);
+    // Make sure it will have the trailing backslash!
+    iLen = strlen(achCacheStorageFilename);
+    if ((iLen>0) &&
+        (achCacheStorageFilename[iLen-1]!='\\'))
+    {
+      achCacheStorageFilename[iLen] = '\\';
+      achCacheStorageFilename[iLen+1] = 0;
+    }
+    // Now put there the ini file name!
+    strncat(achCacheStorageFilename, "fccache.ini", sizeof(achCacheStorageFilename));
+    // Try to open that file!
+    hiniFontCacheStorage = PrfOpenProfile((HAB)1, achCacheStorageFilename);
+  }
+
+  if (hiniFontCacheStorage == NULLHANDLE)
+  {
+    // Get home TEMP
+    pchEnvVar = getenv("TEMP");
+
+    // If we have the TEMP variable set, then we'll try to use that
+    // otherwise fall back to the current directory
+    if (pchEnvVar)
+    {
+      int iLen;
+      
+      snprintf(achCacheStorageFilename, sizeof(achCacheStorageFilename)-1, "%s", pchEnvVar);
+      // Make sure it will have the trailing backslash!
+      iLen = strlen(achCacheStorageFilename);
+      if ((iLen>0) &&
+          (achCacheStorageFilename[iLen-1]!='\\'))
+      {
+        achCacheStorageFilename[iLen] = '\\';
+        achCacheStorageFilename[iLen+1] = 0;
+      }
+      // Now put there the ini file name!
+      strncat(achCacheStorageFilename, "fccache.ini", sizeof(achCacheStorageFilename));
+      // Try to open that file!
+      hiniFontCacheStorage = PrfOpenProfile((HAB)1, achCacheStorageFilename);
+    }
+  }
+
+  if (hiniFontCacheStorage == NULLHANDLE)
+  {
+    // Falling back to current directory...
+    snprintf(achCacheStorageFilename, sizeof(achCacheStorageFilename)-1, "fccache.ini");
+    hiniFontCacheStorage = PrfOpenProfile((HAB)1, achCacheStorageFilename);
+  }
+
+  if (hiniFontCacheStorage == NULLHANDLE)
+  {
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Could not create/open INI file at [%s], will be using user.ini!\n", achCacheStorageFilename);
+#endif
+    hiniFontCacheStorage = HINI_USER;
+  }
+#ifdef FONTCONFIG_DEBUG_PRINTF
+  else
+    fprintf(stderr, "XX: Created/Opened INI file at [%s]\n", achCacheStorageFilename);
+#endif
+}
+
+static void CloseCacheStorageIniFile()
+{
+  if (hiniFontCacheStorage != HINI_USER)
+  {
+    PrfCloseProfile(hiniFontCacheStorage);
+    hiniFontCacheStorage = HINI_USER;
   }
 }
 
@@ -258,16 +372,22 @@ fcExport FcBool FcInit()
 {
   ULONG ulBootDrive;
   char chBootDrive;
-  char achFontNameList[MAX_FONTLISTSIZE];
+  char *pchFontNameList;
+  unsigned int uiFontNameListSize;
+  int   bTryAgain;
   char *pchCurrentFont;
   char achFontFileName[CCHMAXPATH];
   char achAbsFontFileName[CCHMAXPATH];
+  char achKeyName[128];
 
   if (FT_Init_FreeType(&hFtLib))
   {
     /* Could not initialize FreeType */
     return FcFalse;
   }
+
+  /* As the font cache will be stored in our own INI file, let's open that ini file first */
+  OpenCacheStorageIniFile();
 
   /* Go through all the available/installed fonts and
    * make sure we have an up-to-date description cache
@@ -278,14 +398,52 @@ fcExport FcBool FcInit()
   DosQuerySysInfo(QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulBootDrive, sizeof(ULONG));
   chBootDrive = (char)( ulBootDrive + '@' );
 
-  memset(achFontNameList, 0, MAX_FONTLISTSIZE);
-  PrfQueryProfileString(HINI_USER, "PM_Fonts", NULL, NULL, achFontNameList, MAX_FONTLISTSIZE);
+  uiFontNameListSize = 512;
+  pchFontNameList = (char *) malloc(uiFontNameListSize);
+  if (!pchFontNameList)
+  {
+    // Out of memory
+    CloseCacheStorageIniFile();
+    return FcFalse;
+  }
 
-  pchCurrentFont = &(achFontNameList[0]);
+  // Query the entries (keys) of PM_Fonts app in user ini file
+  // It might be big, so we need this complicated re-try stuff, with an ever increasing buffer.
+  do {
+    bTryAgain = 0;
+
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Querying PM_Fonts (size=%d)\n", uiFontNameListSize);
+#endif
+    PrfQueryProfileString(HINI_USER, "PM_Fonts", NULL, NULL, pchFontNameList, uiFontNameListSize);
+    if ((SHORT) WinGetLastError((HAB)1) == PMERR_BUFFER_TOO_SMALL)
+    {
+      unsigned char *pchNewPtr;
+      // Seems like the list of fonts is query large, we need a bigger buffer
+      uiFontNameListSize+=512;
+      pchNewPtr = (unsigned char *) realloc(pchFontNameList, uiFontNameListSize);
+      if (!pchNewPtr)
+      {
+        // Could not reallocate it!
+        // Well, that's what we have then, live with it.
+        uiFontNameListSize-=512;
+      } else
+      {
+        // Buffer reallocated, try again
+        pchFontNameList = pchNewPtr;
+        bTryAgain = 1;
+      }
+    }
+  } while (bTryAgain);
+
+  // Now go through the PM font list, and make sure that every font entry of it has an up-to-date entry in our
+  // cache.
+  pchCurrentFont = pchFontNameList;
   while (pchCurrentFont[0])
   {
     PrfQueryProfileString(HINI_USER, "PM_Fonts", pchCurrentFont, "", achFontFileName, CCHMAXPATH);
 
+    // Get absolute file name for this font
     if (achFontFileName[0] == '\\' )
     {
       achAbsFontFileName[0] = chBootDrive;
@@ -297,10 +455,124 @@ fcExport FcBool FcInit()
       strcpy(achAbsFontFileName, achFontFileName);
     }
 
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Font in PM_Fonts: [%s] [%s]\n", pchCurrentFont, achAbsFontFileName);
+#endif
+
+    // Create a cache entry for this font
     CacheFontDescription(pchCurrentFont, achAbsFontFileName);
 
+    // Go for next font
     pchCurrentFont += strlen(pchCurrentFont)+1;
   }
+  // Free resources
+  free(pchFontNameList);
+
+  /* Another step for cleanup:
+   * Make sure that we have no entry in the font cache ini file, which is not in our current active cache.
+   * If there is one, delete that cache entry.
+   */
+  uiFontNameListSize = 512;
+  pchFontNameList = (char *) malloc(uiFontNameListSize);
+  if (!pchFontNameList)
+  {
+    // Out of memory
+    // Well, bail out with success, as this cleanup thing is not that much a critical thing.
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Out of memory at cache cleanup\n");
+#endif
+    CloseCacheStorageIniFile();
+    return FcTrue;
+  }
+
+  // Query the entries (keys) of PM_Font_cache
+  // It might be big, so we need this complicated re-try stuff, with an ever increasing buffer.
+  do {
+    bTryAgain = 0;
+
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Querying PM_Fonts_FontConfig_Cache list (size=%d)\n", uiFontNameListSize);
+#endif
+    PrfQueryProfileString(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING, NULL, NULL, pchFontNameList, uiFontNameListSize);
+    if ((SHORT) WinGetLastError((HAB)1) == PMERR_BUFFER_TOO_SMALL)
+    {
+      unsigned char *pchNewPtr;
+      // Seems like the list of fonts is query large, we need a bigger buffer
+      uiFontNameListSize+=512;
+      pchNewPtr = (unsigned char *) realloc(pchFontNameList, uiFontNameListSize);
+      if (!pchNewPtr)
+      {
+        // Could not reallocate it!
+        // Well, that's what we have then, live with it.
+        uiFontNameListSize-=512;
+      } else
+      {
+        // Buffer reallocated, try again
+        pchFontNameList = pchNewPtr;
+        bTryAgain = 1;
+      }
+    }
+  } while (bTryAgain);
+
+  // Now go through the font cache list, and make sure that every entry has an element in our current list.
+  // If one does not have, delete it!
+#ifdef FONTCONFIG_DEBUG_PRINTF
+  fprintf(stderr, "XX: Cleaning up font cache (INI file) from old entries\n");
+#endif
+  FontDescriptionCache_p pFontCacheEntry = pFontDescriptionCacheHead;
+  while (pFontCacheEntry)
+  {
+    ConstructINIKeyName(achKeyName, sizeof(achKeyName),
+                        pFontCacheEntry->achFileName, pFontCacheEntry->lFontIndex);
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Checking key name [%s]\n", achKeyName);
+#endif
+
+    pchCurrentFont = pchFontNameList;
+    unsigned int uiCurrentPos = 0;
+    unsigned int uiCurrentLen;
+    while (pchCurrentFont[0])
+    {
+      uiCurrentLen = strlen(pchCurrentFont);
+      if (!stricmp(achKeyName, pchCurrentFont))
+      {
+        // Okay, this one is found in the cache
+#ifdef FONTCONFIG_DEBUG_PRINTF
+        fprintf(stderr, "XX: Found, removed from list of oldies, it won't be deleted.\n");
+#endif
+        memcpy(pchCurrentFont, pchCurrentFont+uiCurrentLen+1,
+               uiFontNameListSize - uiCurrentPos - (uiCurrentLen+1));
+        break;
+      }
+      uiCurrentPos += uiCurrentLen+1;
+      pchCurrentFont += uiCurrentLen+1;
+    }
+
+    pFontCacheEntry = pFontCacheEntry->pNext;
+  }
+
+  // Okay. Now, what remains in the list, all is old, as they are not in our current linked list cache.
+  // Remove them.
+
+  pchCurrentFont = pchFontNameList;
+  while (pchCurrentFont[0])
+  {
+#ifdef FONTCONFIG_DEBUG_PRINTF
+    fprintf(stderr, "XX: Removing old ini entry [%s]\n", pchCurrentFont);
+#endif
+    PrfWriteProfileData(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                        pchCurrentFont, NULL, 0);
+
+    // Go for next font
+    pchCurrentFont += strlen(pchCurrentFont)+1;
+  }
+
+#ifdef FONTCONFIG_DEBUG_PRINTF
+  fprintf(stderr, "XX: FontConfig cache is now up to date, and initialized.\n");
+#endif
+  // Free resources
+  free(pchFontNameList);
+  CloseCacheStorageIniFile();
 
   return FcTrue;
 }
@@ -831,6 +1103,7 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   if (pBestMatch)
     pFont = pBestMatch;
 
+
   if (pFont)
   {
 #ifdef MATCH_DEBUG
@@ -906,20 +1179,6 @@ fcExport void FcObjectSetDestroy(FcObjectSet *os)
 
   if (os)
     free(os);
-}
-
-fcExport FcBool FcInitReinitialize(void)
-{
-  // This is a stub
-
-  return FcTrue;
-}
-
-fcExport FcBool FcConfigUptoDate(FcConfig *config)
-{
-  // This is a stub
-
-  return FcTrue;
 }
 
 fcExport FcFontSet *FcFontSetCreate(void)
@@ -1128,5 +1387,25 @@ fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
   }
 
   /* if we haven't returned by now then everything is equal */
+  return FcTrue;
+}
+
+fcExport FcBool FcInitReinitialize(void)
+{
+  FcFini();
+  return FcInit();
+}
+
+fcExport FcBool FcInitBringUptoDate(void)
+{
+  FcFini();
+  return FcInit();
+}
+
+fcExport FcBool FcConfigUptoDate(FcConfig *config)
+{
+  // Stub
+  // It could be done, but it's not a short thingie.
+  // We should do something like we do at FcInit()...
   return FcTrue;
 }

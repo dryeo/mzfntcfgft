@@ -361,9 +361,10 @@
       /* assume "Regular" style if we don't know better */
       root->style_name = (char *)"Regular";
 
-      if ( info->weight )
-        root->style_name = info->weight;
-      else if ( root->family_name )
+      //if ( info->weight ) /* PmW: caused problem with missing styles */
+      //  root->style_name = info->weight;
+      //else
+      if ( root->family_name )
       {
         char*  full   = info->full_name;
         char*  family = root->family_name;
