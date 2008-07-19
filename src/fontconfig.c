@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <math.h> /* for fabs */
+#include <float.h> /* for DBL_EPSILON */
 #define INCL_DOS
 #define INCL_WIN
 #define INCL_DOSERRORS
@@ -1036,4 +1038,64 @@ fcExport FcPattern *FcFreeTypeQuery(const FcChar8 *file, int id, FcBlanks *blank
   strcpy(pattern->style, ftface->style_name);
 
   return pattern;
+}
+
+fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
+{
+  /* point to the same pattern */
+  if (pa == pb) {
+    return FcTrue;
+  }
+
+  /* one of the patterns is invalid */
+  if (!pa || !pb) {
+    return FcFalse;
+  }
+
+  /* check string properties */
+  /* If the string have the same address or they are both NULL it would mean
+   * we had equal strings. If that is not the case we have to test if only
+   * one of them is NULL and finally how they compare.
+   */
+  if (!(pa->family == pb->family || (!pa->family && !pb->family))
+      && (!pa->family || !pb->family || stricmp(pa->family, pb->family) != 0))
+  {
+    return FcFalse;
+  }
+
+  if (!(pa->style == pb->style || (!pa->style && !pb->style))
+      && (!pa->style || !pb->style || stricmp(pa->style, pb->style) != 0))
+  {
+    return FcFalse;
+  }
+
+  /* check int properties */
+  if (pa->weight != pb->weight ||
+      pa->slant != pb->slant ||
+      pa->spacing != pb->spacing ||
+      pa->hintstyle != pb->hintstyle ||
+      pa->rgba != pb->rgba)
+  {
+    return FcFalse;
+  }
+
+  /* check double properties, better not compare directly */
+  if (fabs(pa->pixelsize-pb->pixelsize) > DBL_EPSILON ||
+      fabs(pa->size-pb->size) > DBL_EPSILON)
+  {
+    return FcFalse;
+  }
+
+  /* check bool properties, just direct comparison as for ints */
+  if (pa->hinting != pb->hinting ||
+      pa->antialias != pb->antialias ||
+      pa->embolden != pb->embolden ||
+      pa->verticallayout != pb->verticallayout ||
+      pa->autohint != pb->autohint)
+  {
+    return FcFalse;
+  }
+
+  /* if we haven't returned by now then everything is equal */
+  return FcTrue;
 }

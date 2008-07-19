@@ -18,6 +18,7 @@ FREETYPE_OBJS = \
 	base/ftmm.o         \
 	base/fttype1.o      \
 	base/ftsynth.o      \
+	base/ftstroke.o     \
 	autofit/autofit.o   \
 	sfnt/sfnt.o         \
 	psnames/psnames.o   \

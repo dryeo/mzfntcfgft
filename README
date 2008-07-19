@@ -56,6 +56,8 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20080315  - Compile FT stroking code, too
+          - Implement FcPatternEqual()
 20080307  Lots of improvements to the FontConfig port with help from Doodle
           - Improve matching of installed fonts (exact font name matched first)
           - Add support for oblique fonts
@@ -77,4 +79,4 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 07Mar2008
+Peter Weilbacher <mozilla@Weilbacher.org>, 15Mar2008
