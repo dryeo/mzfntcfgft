@@ -9,7 +9,7 @@ environment variables set. Please follow the guide at
 how to do this.
 
 Move the whole directory containing this package where you want it installed
-and then run 
+and then run
    make -s
    make clean
 This compiles all files, links them into mzfntcfg.dll and adapts the
@@ -28,38 +28,32 @@ following lines:
   'set MZFTCFGFT2='backtoforward(value('MZFTCFGFT',,'OS2ENVIRONMENT'));
 
 
-- Cairo files
-The official sources of Mozilla (and the upstream cairo project) now contain
-the sources for OS/2, both on the trunk and on the MOZILLA_1_8_BRANCH. No
-extra files should be necessary any more.
-
-
 - Sources
 The required source code is contained in this package. It is compiled from bits
 of the packages
-   expat-1.95.8
-   fontconfig-2.3.2-os2
-   freetype-2.1.10       (plus freetype security fixes)
-These packages were drawn from Doodle's package
-   ftp://ftp.netlabs.org/pub/Cairo/cairo-1.0.4-os2-src-with-dependencies.zip
-the freetype security fixes come from the Gentoo freetype package (file
-freetype-2.1.10-security_batch-r1.patch.bz2).
+   fontconfig           (the Netlabs version by ErOs2 and Doodle)
+   fontconfig-2.3.2-os2 (only the header files of the original Fontconfig package)
+Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
+   ft234.zip            (from http://sourceforge.net/project/showfiles.php?group_id=3157&package_id=3121)
+Differences from the default configuration of FreeType (in the header files in
+include\freetype\config are marked with PmW.
 
 
-- Using this package
-The Mozilla build setup automatically links the .lib files from the lib
-directory where needed. No extra attention should be needed.
+- Using the DLL
+If you built a Mozilla application with SVG support, you will not be able to
+start it until you place mzfntcfg.dll into the LIBPATH or the program
+directory. If you want to ship a program linked against this DLL, the best will
+be to copy both mzfntcfg.COPYING and mzfntcfg.dll into the program directory in
+the package.
 
 
 - Copyright
-See mozftcfg.COPYING for copyright information. That file contains the required
-copyright notes from all three base packages. If you plan to distribute a
-Mozilla product that makes use of this package, please check about:license for
-the copyright notes of the three packages.
+See mzfntcfg.COPYING for copyright information. That file contains the required
+copyright notes from both base packages.
 
 
 - Contact person
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 26Nov2006
+Peter Weilbacher <mozilla@Weilbacher.org>, 18May2007

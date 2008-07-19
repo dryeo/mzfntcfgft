@@ -1,6 +1,11 @@
 /*
  * This code is (C) Netlabs.org
  * Author: Doodle <doodle@scenergy.dfmk.hu>
+ *
+ * Version history:
+ *   v1.1 (2007/05/16) :
+ *     - Implemented some missing functions for Mozilla,
+ *       mostly about font sets.
  */
 
 #include <stdlib.h>
@@ -42,7 +47,7 @@ struct _FcPattern
     char *family;
     int slant;
     int weight;
-    int pixelsize;
+    double pixelsize;
     int spacing;
 
     FontDescriptionCache_p pFontDesc;
@@ -241,16 +246,27 @@ fcExport void FcPatternDestroy (FcPattern *p)
 }
 
 fcExport FcBool FcConfigSubstitute (FcConfig	*config,
-                           FcPattern	*p,
-                           FcMatchKind	kind)
+                                    FcPattern	*p,
+                                    FcMatchKind	kind)
 {
   // STUB
   return FcTrue;
 }
 
+
 fcExport void FcDefaultSubstitute (FcPattern *pattern)
 {
-  // STUB
+  if (pattern)
+  {
+    if (pattern->weight==0)
+      pattern->weight = FC_WEIGHT_MEDIUM;
+    if (pattern->slant==0)
+      pattern->slant = FC_SLANT_ROMAN;
+    if (pattern->spacing==0)
+      pattern->spacing = FC_PROPORTIONAL;
+    if (pattern->pixelsize==0)
+      pattern->pixelsize = 12.0 * 1.0 * 75.0 / 72.0; // font size * scale * dpi / 72.0;
+  }
 }
 
 fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int n, int *i)
@@ -265,6 +281,16 @@ fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, i
     *i = FC_HINT_FULL;
     return FcResultMatch;
   }
+  if (strcmp(object, FC_SLANT)==0)
+  {
+    *i = p->slant;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_WEIGHT)==0)
+  {
+    *i = p->weight;
+    return FcResultMatch;
+  }
   return FcResultNoMatch;
 }
 
@@ -275,6 +301,21 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
     *s = p->pFontDesc->achFileName;
     return FcResultMatch;
   }
+
+  if (strcmp(object, FC_FAMILY)==0)
+  {
+    if (p->family)
+    {
+      *s = p->family;
+      return FcResultMatch;
+    } else
+    if (p->pFontDesc)
+    {
+      *s = p->pFontDesc->achFamilyName;
+      return FcResultMatch;
+    }
+  }
+
   return FcResultNoMatch;
 }
 
@@ -317,13 +358,30 @@ fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
     p->weight = i;
     return FcTrue;
   }
+
+  return FcFalse;
+}
+
+fcExport FcBool FcPatternAddDouble(FcPattern *p, const char *object, double d)
+{
   if (strcmp(object, FC_PIXEL_SIZE)==0)
   {
-    p->pixelsize = i;
+    p->pixelsize = d;
     return FcTrue;
   }
 
   return FcFalse;
+}
+
+fcExport FcResult FcPatternGetDouble(const FcPattern *p, const char *object, int id, double *d)
+{
+  if (strcmp(object, FC_PIXEL_SIZE)==0)
+  {
+    *d = p->pixelsize;
+    return FcResultMatch;
+  }
+
+  return FcResultNoMatch;
 }
 
 fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
@@ -365,22 +423,49 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   pFont = pFontDescriptionCacheHead;
   pBestMatch = NULL;
   iBestMatchScore = -1;
+
+//#define MATCH_DEBUG
+#ifdef MATCH_DEBUG
+  // print the list of all fonts for debugging
+  printf("\nfull font list\n");
   while (pFont)
   {
-    if ((p->family) && (strstr(pFont->achFamilyName, p->family)))
+    printf("  %s,%s\n", pFont->achFamilyName, pFont->achStyleName);
+    pFont = pFont->pNext;
+  }
+  // reset to first font
+  pFont = pFontDescriptionCacheHead;
+
+  // print input pattern to match
+  printf("input pattern\n  %s,%d,%d,%f\n",
+         p->family, p->weight, p->slant, p->pixelsize);
+#endif
+
+  // first try to match the font using an exact match of the family name
+  while (pFont)
+  {
+    if ((p->family) && (strcmp(pFont->achFamilyName, p->family)==0))
     {
       // Family found, calculate score for it!
-      if ( p->weight > FC_WEIGHT_NORMAL )
+      if ( p->weight > FC_WEIGHT_MEDIUM )
       {
+        // Looking for a BOLD font
         bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
       } else
-        bWeightOk = 1;
-  
+      {
+        // Looking for a non-bold (normal) font
+        bWeightOk = (strstr(pFont->achStyleName, "BOLD")==NULL);
+      }
+
       if ( p->slant > FC_SLANT_ROMAN )
       {
+        // Looking for an ITALIC font
         bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
       } else
-        bSlantOk = 1;
+      {
+        // Looking for a non-italic font
+        bSlantOk = (strstr(pFont->achStyleName, "ITALIC")==NULL);
+      }
 
       // Check if this score is better than the previous best one
       if (iBestMatchScore < bWeightOk*2 + bSlantOk)
@@ -397,6 +482,56 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
       }
     }
     pFont = pFont->pNext;
+  }
+  // Use the one if we've found something
+  if (pBestMatch)
+    pFont = pBestMatch;
+
+  // again, if an exact match was not found, now try to find the family
+  // name by substring search
+  if (!pFont)
+  {
+    while (pFont)
+    {
+      if ((p->family) && (strstr(pFont->achFamilyName, p->family)))
+      {
+        // Family found, calculate score for it!
+        if ( p->weight > FC_WEIGHT_MEDIUM )
+        {
+          // Looking for a BOLD font
+          bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
+        } else
+        {
+          // Looking for a non-bold (normal) font
+          bWeightOk = (strstr(pFont->achStyleName, "BOLD")==NULL);
+        }
+
+        if ( p->slant > FC_SLANT_ROMAN )
+        {
+          // Looking for an ITALIC font
+          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
+        } else
+        {
+          // Looking for a non-italic font
+          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")==NULL);
+        }
+
+        // Check if this score is better than the previous best one
+        if (iBestMatchScore < bWeightOk*2 + bSlantOk)
+        {
+          pBestMatch = pFont;
+          iBestMatchScore = bWeightOk*2 + bSlantOk;
+
+          // Check if it's a perfect match!
+          if ((bWeightOk) && (bSlantOk))
+          {
+            // Fount an exact match!
+            break;
+          }
+        }
+      }
+      pFont = pFont->pNext;
+    }
   }
   // Use the one if we've found something
   if (pBestMatch)
@@ -435,17 +570,25 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
       if (strstr(pFont->achFamilyName, achKey))
       {
         // Family found, calculate score for it!
-        if ( p->weight > FC_WEIGHT_NORMAL )
+        if ( p->weight > FC_WEIGHT_MEDIUM )
         {
+          // Looking for a BOLD font
           bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
         } else
-          bWeightOk = 1;
+        {
+          // Looking for a non-bold (normal) font
+          bWeightOk = (strstr(pFont->achStyleName, "BOLD")==NULL);
+        }
 
         if ( p->slant > FC_SLANT_ROMAN )
         {
+          // Looking for an ITALIC font
           bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
         } else
-          bSlantOk = 1;
+        {
+          // Looking for a non-italic font
+          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")==NULL);
+        }
 
         // Check if this score is better than the previous best one
         if (iBestMatchScore < bWeightOk*2 + bSlantOk)
@@ -467,6 +610,10 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
     if (pBestMatch)
       pFont = pBestMatch;
   }
+#ifdef MATCH_DEBUG
+  // print the font representing the best match
+  printf("best match\n  %s,%s\n", pFont->achFamilyName, pFont->achStyleName);
+#endif
 
   if (pFont)
   {
@@ -489,4 +636,138 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
       *result = FcResultNoMatch;
     return NULL;
   }
+}
+
+fcExport FcBool FcPatternDel(FcPattern *p, const char *object)
+{
+  // This is a stub.
+  return FcTrue;
+}
+
+fcExport FcObjectSet *FcObjectSetBuild(const char *first, ...)
+{
+  // This is a stub.
+  // We assume that the object sets are always created for
+  // FC_FAMILY parameters, as Mozilla uses only that.
+
+  FcObjectSet *result = (FcObjectSet *) malloc(sizeof(FcObjectSet));
+
+  if (result)
+    memset(result, 0, sizeof(FcObjectSet));
+
+  return result;
+}
+
+fcExport void FcObjectSetDestroy(FcObjectSet *os)
+{
+  // This is a stub.
+
+  if (os)
+    free(os);
+}
+
+fcExport FcBool FcInitReinitialize(void)
+{
+  // This is a stub
+
+  return FcTrue;
+}
+
+fcExport FcBool FcConfigUptoDate(FcConfig *config)
+{
+  // This is a stub
+
+  return FcTrue;
+}
+
+fcExport FcFontSet *FcFontSetCreate(void)
+{
+  FcFontSet *result = (FcFontSet *) malloc(sizeof(FcFontSet));
+
+  if (result)
+    memset(result, 0, sizeof(FcFontSet));
+
+  return result;
+}
+
+fcExport void FcFontSetDestroy(FcFontSet *fs)
+{
+  if (fs)
+  {
+    int i;
+    for (i=0; i<fs->nfont; ++i)
+    {
+      FcPatternDestroy(fs->fonts[i]);
+    }
+
+    if (fs->fonts)
+      free(fs->fonts);
+
+    free(fs);
+  }
+}
+
+fcExport FcBool FcFontSetAdd(FcFontSet *fs, FcPattern *pat)
+{
+  if (fs->nfont>=fs->sfont)
+  {
+    void *newptr = NULL;
+    fs->sfont+=32;
+    newptr = realloc(fs->fonts, fs->sfont * sizeof(void *));
+    if (!newptr)
+    {
+      fs->sfont-=32;
+      return FcFalse;
+    }
+
+    fs->fonts = newptr;
+  }
+  fs->fonts[fs->nfont] = pat;
+  fs->nfont++;
+  return FcTrue;
+}
+
+fcExport FcFontSet *FcFontList(FcConfig *config, FcPattern *p, FcObjectSet *os)
+{
+  // This is a stub.
+
+  // We assume that the we either have to list all fonts (pat.family==NULL),
+  // or we have to list a given family (pat.family!=NULL),
+  // and only their FC_FAMILY property will be queried before
+  // the font list is destroyed.
+
+  FcFontSet *result = FcFontSetCreate();
+
+  if (result)
+  {
+    FontDescriptionCache_p pFont;
+
+    pFont = pFontDescriptionCacheHead;
+    while (pFont)
+    {
+      if ((p->family==NULL) ||
+          (strstr(pFont->achFamilyName, p->family)))
+      {
+        FcPattern *newPattern = FcPatternCreate();
+        newPattern->pFontDesc = pFont;
+
+        FcFontSetAdd(result, newPattern);
+      }
+      pFont = pFont->pNext;
+    }
+  }
+
+  return result;
+}
+
+fcExport FcFontSet *FcFontSort(FcConfig *config, FcPattern *p, FcBool trim, FcCharSet **csp, FcResult *result)
+{
+  // This is a stub.
+
+  // I currently have no idea what kind of sorting to do here,
+  // what would be the best for Mozilla, so I simply won't sort it. :)
+  // Use the same code as for FcFontList().
+
+  *result = FcResultMatch;
+  return (FcFontList(config, p, NULL));
 }
