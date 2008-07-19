@@ -12,9 +12,9 @@ INCLUDEDIR = include
 SRCDIR = src
 
 CC = gcc
-CFLAGS = -Wall -O2 -Zomf -pipe 
+CFLAGS = -Wall -O2 -Zomf -pipe
 #CFLAGS += -g
 DLLFLAGS = -Zomf -Zdll -Zmap -pipe
-DLLFLAGS += -Zlinker /EXEPACK:2 -Zlinker /PACKCODE -Zlinker /PACKCODE -s -O2 
-#DLLFLAGS += -g 
+DLLFLAGS += -Zlinker /EXEPACK:2 -Zlinker /PACKCODE -Zlinker /PACKCODE -s -O2
+#DLLFLAGS += -g
 

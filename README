@@ -31,8 +31,8 @@ following lines:
 - Sources
 The required source code is contained in this package. It is compiled from bits
 of the packages
-   fontconfig           (the Netlabs version by ErOs2 and Doodle, a bit 
-                        enhanced by me in collaboration with Doodle)
+   fontconfig           (the Netlabs version by ErOs2 and Doodle, enhanced by
+                        me in collaboration with Doodle)
    fontconfig-2.3.2-os2 (only the header files of the original Fontconfig package)
 Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
    ft235.zip            (from http://sourceforge.net/project/showfiles.php?group_id=3157&package_id=3121)
@@ -56,6 +56,14 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20080307  Lots of improvements to the FontConfig port with help from Doodle
+          - Improve matching of installed fonts (exact font name matched first)
+          - Add support for oblique fonts
+          - More FontConfig properties supported (hint style, RGBA, style, etc.)
+          - Add function FcFreeTypeQuery()
+          - Support multiple font faces in one font file
+          . Because of the latter, has to cache fonts in a new OS2.INI key
+            (PM_Fonts_FontConfig_Cache_v1.1)
 20071125  - Upgrade to FT 2.3.5
           - Add a few features and fix a few bugs of the OS/2 Fontconfig
             implementation
@@ -69,4 +77,4 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 25Nov2007
+Peter Weilbacher <mozilla@Weilbacher.org>, 07Mar2008

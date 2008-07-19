@@ -32,4 +32,3 @@ nuke:	clean
 	rm -f $(LIBDIR)/$(FONTCONFIG_NAME).lib \
 	      $(LIBDIR)/$(FREETYPE_OUT)        \
 	      $(BINDIR)/freetype-config
-

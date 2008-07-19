@@ -21,7 +21,7 @@
 #include FT_FREETYPE_H
 
 #ifndef FC_CACHE_VERSION_STRING
-# define FC_CACHE_VERSION_STRING "v1.0_with_GCC"
+# define FC_CACHE_VERSION_STRING "v1.1_with_GCC"
 #endif
 
 #ifdef FC_EXPORT_FUNCTIONS
@@ -32,12 +32,14 @@
 
 #define MAX_FONTLISTSIZE 4096
 
+/* structure for the font cache in OS2.INI  */
 typedef struct FontDescriptionCache_s
 {
   char achFileName[CCHMAXPATH];
   struct stat FileStatus;
   char achFamilyName[128];
   char achStyleName[128];
+  long lFontIndex;
 
   struct FontDescriptionCache_s *pNext;
 } FontDescriptionCache_t, *FontDescriptionCache_p;
@@ -52,6 +54,12 @@ struct _FcPattern
     FcBool hinting;
     FcBool antialias;
     FcBool embolden;
+    FcBool verticallayout;
+    int hintstyle;
+    FcBool autohint;
+    int rgba;
+    double size;
+    char *style;
 
     FontDescriptionCache_p pFontDesc;
 };
@@ -65,8 +73,11 @@ fcExport void FcFini()
 {
   FontDescriptionCache_p pToDelete;
 
-  /* Uninitialize FreeType */
-  FT_Done_FreeType(hFtLib);
+  if (hFtLib) {
+    /* Uninitialize FreeType */
+    FT_Done_FreeType(hFtLib);
+    hFtLib = NULL; /* ensure that we won't do this again */
+  }
 
   /* Destroy Font Description Cache */
   while (pFontDescriptionCacheHead)
@@ -77,13 +88,21 @@ fcExport void FcFini()
   }
 }
 
-static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName, char *pchFontFileName)
+static void ConstructINIKeyName(char *pchDestinationBuffer, unsigned int uiDestinationBufferSize,
+                                char *pchFontName, long lFaceIndex)
+{
+  snprintf(pchDestinationBuffer, uiDestinationBufferSize,
+           "%s%04ld", pchFontName, lFaceIndex);
+}
+
+static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
+                       char *pchFontFileName, long lFaceIndex)
 {
   FT_Face ftface;
   int rc;
   ULONG ulSize;
 
-  if (FT_New_Face(hFtLib, pchFontFileName, 0, &ftface))
+  if (FT_New_Face(hFtLib, pchFontFileName, lFaceIndex, &ftface))
   {
     /* Could not load font. */
     return 0;
@@ -97,6 +116,7 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName, cha
     /* Could not get status info, skip this font! */
     return 0;
   }
+
   if (ftface->family_name)
     strncpy(pFontCache->achFamilyName,
             ftface->family_name,
@@ -105,12 +125,18 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName, cha
     strncpy(pFontCache->achStyleName,
             ftface->style_name,
             sizeof(pFontCache->achStyleName));
+  pFontCache->lFontIndex = lFaceIndex;
 
   FT_Done_Face(ftface);
 
+  /* construct actual INI key from font name and number */
+  char achKeyName[128];
+  ConstructINIKeyName(achKeyName, sizeof(achKeyName),
+                      pchFontName, lFaceIndex);
   ulSize = sizeof(FontDescriptionCache_t);
-  rc = PrfWriteProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING, pchFontName,
-                           pFontCache,  ulSize);
+  /* Store font cache in INI file */
+  rc = PrfWriteProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                           achKeyName, pFontCache, ulSize);
 
   return rc;
 }
@@ -121,6 +147,10 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
   FontDescriptionCache_t FontDesc;
   FontDescriptionCache_p pNewFontCacheEntry;
   ULONG ulSize;
+  FT_Face ftface;
+  FT_Open_Args ftopenargs;
+  long lNumFacesInFile;
+  long lCurFace;
   int iLen = strlen(pchFontFileName);
 
   /* Modify filename if needed */
@@ -130,55 +160,76 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
     pchFontFileName[iLen-1] = 'B';
   }
 
-  /* Check if we have a cache entry with this font name in INI file */
-  memset(&FontDesc, 0, sizeof(FontDesc));
-  ulSize = sizeof(FontDesc);
-  rc = PrfQueryProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING, pchFontName,
-                           &FontDesc,  &ulSize);
-  if ((ulSize!=sizeof(FontDesc)) || (!rc))
+  /* Query the number of font faces contained in this font file */
+  /* Documentation for FT_Open_Face() says that this is the way to */
+  /* quickly query the number of supported font faces of a file. */
+  ftopenargs.flags = FT_OPEN_PATHNAME;
+  ftopenargs.pathname = pchFontFileName;
+  ftopenargs.num_params = 0;
+  ftopenargs.params = NULL;
+  if (FT_Open_Face(hFtLib, &ftopenargs, -1, &ftface))
   {
-    /* Hm, there is no cache for this file, try to create it! */
-    if (!CreateCache(&FontDesc, pchFontName, pchFontFileName))
-      return;
-  } else
-  {
-    struct stat statBuf;
-
-    /* There is cache for this file, check if it's up to date! */
-    if (stat(pchFontFileName, &statBuf)==-1)
-    {
-      /* Could not get status info, skip this font! */
-      return;
-    }
-    if ((statBuf.st_size != FontDesc.FileStatus.st_size) ||
-        (statBuf.st_mtime != FontDesc.FileStatus.st_mtime))
-    {
-      /* The cache is not up to date, so recreate it! */
-      if (!CreateCache(&FontDesc, pchFontName, pchFontFileName))
-        return;
-    }
-  }
-
-  /* Link this font to the list of available fonts */
-  pNewFontCacheEntry = (FontDescriptionCache_p) malloc(sizeof(FontDescriptionCache_t));
-  if (!pNewFontCacheEntry)
+    /* Could not load font. */
     return;
-
-  memcpy(pNewFontCacheEntry, &FontDesc, sizeof(FontDesc));
-  pNewFontCacheEntry->pNext = NULL;
-  if (pFontDescriptionCacheLast)
-  {
-    pFontDescriptionCacheLast->pNext = pNewFontCacheEntry;
-    pFontDescriptionCacheLast = pNewFontCacheEntry;
-  } else
-  {
-    pFontDescriptionCacheLast = pFontDescriptionCacheHead = pNewFontCacheEntry;
   }
-  // Then uppercase the names internally
-  // XXX no, don't do that, otherwise they all appear uppercased in Mozilla!!!
-  //strupr(pNewFontCacheEntry->achFamilyName);
-  //strupr(pNewFontCacheEntry->achStyleName);
+  lNumFacesInFile = ftface->num_faces;
+  FT_Done_Face(ftface);
 
+  /* Now go through all the faces of this font, and check if we have */
+  /* a cache entry for all of them in INI file */
+  for (lCurFace=0; lCurFace<lNumFacesInFile; lCurFace++)
+  {
+    /* Construct key name for font file + face index pair */
+    char achKeyName[128];
+    ConstructINIKeyName(achKeyName, sizeof(achKeyName),
+                        pchFontName, lCurFace);
+
+    /* Try to read back the font cache for this pair from the INI file */
+    memset(&FontDesc, 0, sizeof(FontDesc));
+    ulSize = sizeof(FontDesc);
+    rc = PrfQueryProfileData(HINI_USER, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                             achKeyName,
+                             &FontDesc,  &ulSize);
+    if ((ulSize!=sizeof(FontDesc)) || (!rc))
+    {
+      /* Hm, there is no cache for this file, try to create it! */
+      if (!CreateCache(&FontDesc, pchFontName, pchFontFileName, lCurFace))
+        continue;
+    } else
+    {
+      struct stat statBuf;
+
+      /* There is cache for this file, check if it's up to date! */
+      if (stat(pchFontFileName, &statBuf)==-1)
+      {
+        /* Could not get status info, skip this font! */
+        continue;
+      }
+      if ((statBuf.st_size != FontDesc.FileStatus.st_size) ||
+          (statBuf.st_mtime != FontDesc.FileStatus.st_mtime))
+      {
+        /* The cache is not up to date, so recreate it! */
+        if (!CreateCache(&FontDesc, pchFontName, pchFontFileName, lCurFace))
+          continue;
+      }
+    }
+
+    /* Link this font to the list of available fonts */
+    pNewFontCacheEntry = (FontDescriptionCache_p) malloc(sizeof(FontDescriptionCache_t));
+    if (!pNewFontCacheEntry)
+      return;
+
+    memcpy(pNewFontCacheEntry, &FontDesc, sizeof(FontDesc));
+    pNewFontCacheEntry->pNext = NULL;
+    if (pFontDescriptionCacheLast)
+    {
+      pFontDescriptionCacheLast->pNext = pNewFontCacheEntry;
+      pFontDescriptionCacheLast = pNewFontCacheEntry;
+    } else
+    {
+      pFontDescriptionCacheLast = pFontDescriptionCacheHead = pNewFontCacheEntry;
+    }
+  }
 }
 
 // we need to do case insensitive comparison a lot
@@ -261,6 +312,12 @@ fcExport FcPattern *FcPatternCreate (void)
   }
   pResult->hinting = FcTrue; // default to hinting on
   pResult->antialias = FcTrue; // default to antialias on
+  pResult->embolden = FcFalse; // no emboldening by default
+  pResult->verticallayout = FcFalse; // horizontal layout by default
+  pResult->autohint = FcFalse; // off by default as recommended in fontconfig.h
+  /* set the strings to NULL for easy testing */
+  pResult->family = NULL;
+  pResult->style = NULL;
   return pResult;
 }
 
@@ -268,6 +325,8 @@ fcExport void FcPatternDestroy (FcPattern *p)
 {
   if (p->family)
     free(p->family);
+  if (p->style)
+    free(p->style);
   free(p);
 }
 
@@ -292,8 +351,9 @@ fcExport void FcDefaultSubstitute (FcPattern *pattern)
       pattern->spacing = FC_PROPORTIONAL;
     if (pattern->pixelsize==0)
       pattern->pixelsize = 12.0 * 1.0 * 75.0 / 72.0; // font size * scale * dpi / 72.0;
-    pattern->hinting = FcTrue; // default to hinting on
-    pattern->antialias = FcTrue; // antialias by default
+    if (pattern->size==0)
+      pattern->size = 12.0;
+    /* don't mess with the other settings, especially not with the boolean ones */
   }
 }
 
@@ -301,12 +361,7 @@ fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, i
 {
   if (strcmp(object, FC_INDEX)==0)
   {
-    *i = 0;
-    return FcResultMatch;
-  }
-  if (strcmp(object, FC_HINT_STYLE)==0)
-  {
-    *i = FC_HINT_FULL;
+    *i = p->pFontDesc->lFontIndex;
     return FcResultMatch;
   }
   if (strcmp(object, FC_SLANT)==0)
@@ -317,6 +372,16 @@ fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, i
   if (strcmp(object, FC_WEIGHT)==0)
   {
     *i = p->weight;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_HINT_STYLE)==0)
+  {
+    *i = p->hintstyle;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_RGBA)==0)
+  {
+    *i = p->rgba;
     return FcResultMatch;
   }
   return FcResultNoMatch;
@@ -344,6 +409,20 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
     }
   }
 
+  if (strcmp(object, FC_STYLE)==0)
+  {
+    if (p->style)
+    {
+      *s = p->style;
+      return FcResultMatch;
+    } else
+    if (p->pFontDesc)
+    {
+      *s = p->pFontDesc->achStyleName;
+      return FcResultMatch;
+    }
+  }
+
   return FcResultNoMatch;
 }
 
@@ -364,6 +443,16 @@ fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int 
     *b = p->embolden;
     return FcResultMatch;
   }
+  if (strcmp(object, FC_VERTICAL_LAYOUT)==0)
+  {
+    *b = p->verticallayout;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_AUTOHINT)==0)
+  {
+    *b = p->autohint;
+    return FcResultMatch;
+  }
   return FcResultNoMatch;
 }
 
@@ -381,6 +470,11 @@ fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, 
 
 fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
 {
+  if (strcmp(object, FC_INDEX)==0)
+  {
+    p->pFontDesc->lFontIndex = i;
+    return FcTrue;
+  }
   if (strcmp(object, FC_SLANT)==0)
   {
     p->slant = i;
@@ -389,6 +483,16 @@ fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
   if (strcmp(object, FC_WEIGHT)==0)
   {
     p->weight = i;
+    return FcTrue;
+  }
+  if (strcmp(object, FC_HINT_STYLE)==0)
+  {
+    p->hintstyle = i;
+    return FcTrue;
+  }
+  if (strcmp(object, FC_RGBA)==0)
+  {
+    p->rgba = i;
     return FcTrue;
   }
 
@@ -402,6 +506,11 @@ fcExport FcBool FcPatternAddDouble(FcPattern *p, const char *object, double d)
     p->pixelsize = d;
     return FcTrue;
   }
+  if (strcmp(object, FC_SIZE)==0)
+  {
+    p->size = d;
+    return FcTrue;
+  }
 
   return FcFalse;
 }
@@ -411,6 +520,11 @@ fcExport FcResult FcPatternGetDouble(const FcPattern *p, const char *object, int
   if (strcmp(object, FC_PIXEL_SIZE)==0)
   {
     *d = p->pixelsize;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_SIZE)==0)
+  {
+    *d = p->size;
     return FcResultMatch;
   }
 
@@ -429,6 +543,16 @@ fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcCh
     return FcTrue;
   }
 
+  if (strcmp(object, FC_STYLE)==0)
+  {
+    if (p->style)
+    {
+      free(p->style); p->style = NULL;
+    }
+    p->style = strdup(s);
+    return FcTrue;
+  }
+
   return FcFalse;
 }
 
@@ -437,20 +561,30 @@ fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
   if (strcmp(object, FC_HINTING)==0)
   {
     p->hinting = b;
-    return FcResultMatch;
+    return FcTrue;
   }
   if (strcmp(object, FC_ANTIALIAS)==0)
   {
     p->antialias = b;
-    return FcResultMatch;
+    return FcTrue;
   }
   if (strcmp(object, FC_EMBOLDEN)==0)
   {
     p->embolden = b;
-    return FcResultMatch;
+    return FcTrue;
+  }
+  if (strcmp(object, FC_VERTICAL_LAYOUT)==0)
+  {
+    p->verticallayout = b;
+    return FcTrue;
+  }
+  if (strcmp(object, FC_AUTOHINT)==0)
+  {
+    p->autohint = b;
+    return FcTrue;
   }
 
-  return FcResultNoMatch;
+  return FcFalse;
 }
 
 #define DEFAULT_SERIF_FONT          "Times New Roman"
@@ -507,10 +641,15 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
       {
         // Looking for an ITALIC font
         bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+      } else if ( p->slant > FC_SLANT_OBLIQUE )
+      {
+        // Looking for an OBLIQUE font
+        bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
       } else
       {
         // Looking for a non-italic font
-        bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL);
+        bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL &&
+                    stristr(pFont->achStyleName, "OBLIQUE")==NULL);
       }
 
       // Check if this score is better than the previous best one
@@ -598,10 +737,15 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
         {
           // Looking for an ITALIC font
           bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+        } else if ( p->slant > FC_SLANT_OBLIQUE )
+        {
+          // Looking for an OBLIQUE font
+          bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
         } else
         {
           // Looking for a non-italic font
-          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL);
+          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL &&
+                      stristr(pFont->achStyleName, "OBLIQUE")==NULL);
         }
 
         // Check if this score is better than the previous best one
@@ -653,10 +797,15 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
         {
           // Looking for an ITALIC font
           bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+        } else if ( p->slant > FC_SLANT_OBLIQUE )
+        {
+          // Looking for an OBLIQUE font
+          bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
         } else
         {
           // Looking for a non-italic font
-          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL);
+          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL &&
+                      stristr(pFont->achStyleName, "OBLIQUE")==NULL);
         }
 
         // Check if this score is better than the previous best one
@@ -680,13 +829,13 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   if (pBestMatch)
     pFont = pBestMatch;
 
-#ifdef MATCH_DEBUG
-  // print the font representing the best match
-  printf("best match\n  %s,%s\n", pFont->achFamilyName, pFont->achStyleName);
-#endif
-
   if (pFont)
   {
+#ifdef MATCH_DEBUG
+    // print the font representing the best match
+    printf("best match\n  %s,%s\n", pFont->achFamilyName, pFont->achStyleName);
+#endif
+
     // If a font is found, then return with it!
     FcPattern *pResult = FcPatternCreate();
     if (pResult)
@@ -702,6 +851,8 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
 
       if (stristr(pResult->family, "ITALIC")!=NULL)
         pResult->slant = FC_SLANT_ITALIC;
+      else if (stristr(pResult->family, "OBLIQUE")!=NULL)
+        pResult->slant = FC_SLANT_OBLIQUE;
       else
         pResult->slant = FC_SLANT_ROMAN;
 
@@ -718,6 +869,9 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
     return pResult;
   } else
   {
+#ifdef MATCH_DEBUG
+    printf("no best match!!!\n");
+#endif
     if (result)
       *result = FcResultNoMatch;
     return NULL;
@@ -856,4 +1010,30 @@ fcExport FcFontSet *FcFontSort(FcConfig *config, FcPattern *p, FcBool trim, FcCh
 
   *result = FcResultMatch;
   return (FcFontList(config, p, NULL));
+}
+
+/* Constructs a pattern representing the 'id'th font in 'file'. *
+ * The number of fonts in 'file' is returned in 'count'.        */
+// XXX what to do about the FcBlanks* parameter?
+fcExport FcPattern *FcFreeTypeQuery(const FcChar8 *file, int id, FcBlanks *blanks, int *count)
+{
+  FcPattern *pattern = FcPatternCreate();
+  FT_Face ftface;
+
+  FcDefaultSubstitute(pattern);
+
+  if (FT_New_Face(hFtLib, file, id, &ftface))
+  {
+    /* Could not load font. */
+    FcPatternDestroy(pattern);
+    *count = 0;
+    return NULL;
+  }
+  *count = ftface->num_faces;
+  pattern->family = (char*)malloc(strlen(ftface->family_name));
+  strcpy(pattern->family, ftface->family_name);
+  pattern->style = (char*)malloc(strlen(ftface->style_name));
+  strcpy(pattern->style, ftface->style_name);
+
+  return pattern;
 }
