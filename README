@@ -2,49 +2,48 @@
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Setting it up
-To make use of this package for compilation of a Mozilla build that
-makes use of the cairo library, you need a GCC, and various other
-libraries and environment variables set. Please follow the guide at
-<http://www.mozilla.org/ports/os2/gccsetup.html> how to do this. In
-particular you will need to adapt the setmozenv.cmd script to your
-environment.
+To make use of this package for compilation of a Mozilla build that makes use
+of the cairo library, you need a GCC, and various other libraries and
+environment variables set. Please follow the guide at
+   http://developer.mozilla.org/en/docs/OS/2_Build_Prerequisites
+how to do this.
 
-Move the whole directory containing this package where you want it
-installed and then run 
+Move the whole directory containing this package where you want it installed
+and then run 
    make -s
    make clean
 This compiles all files, links them into mzfntcfg.dll and adapts the
-installation to your directory tree. Then it removes the unnecessary
-object files.
+installation to your directory tree. Then it removes the unnecessary object
+files.
 (If for whatever reason you want to recompile everything, do
    make -s nuke all
    make clean
 This comes in handy on GCC upgrades.)
 
-Now be sure to also adapt the MZFNTCFGFT variable in your setmozenv.cmd,
-so that this package can be used by the Mozilla build process. In case
-your setmozenv.cmd does _not_ yet contain these variables add the
+Now be sure to also adapt the MZFNTCFGFT variable in your setmozenv.cmd, so
+that this package can be used by the Mozilla build process. In case your
+setmozenv.cmd does _not_ yet contain these variables add the
 following lines:
-
   'set MZFTCFGFT=%ROOT%\mzftcfgft'
   'set MZFTCFGFT2='backtoforward(value('MZFTCFGFT',,'OS2ENVIRONMENT'));
 
 
 - Cairo files
-As the official cairo (and hence Mozilla) sources don't yet contain
-cairo for OS/2, you have to copy the files from one of the cairo_*
-subdirectories into your mozilla tree at
+As the official cairo (and hence Mozilla) sources don't yet contain cairo for
+OS/2, you have to copy the files from one of the cairo_* subdirectories into
+your mozilla tree at
    mozilla\gfx\cairo\cairo\src
-When doing that be sure to overwrite the existing cairo-features.h.in
-and cairo.h files, otherwise OS/2 will not be picked up. In addition,
-you may need to adapt one of the patches from
+When doing that be sure to overwrite the existing cairo-features.h.in and
+cairo.h files, otherwise OS/2 will not be picked up. In addition, you may need
+to adapt one of the patches from
    https://bugzilla.mozilla.org/show_bug.cgi?id=342644
-to get Mozilla building with cairo.
+to get Mozilla building with cairo. If you are building from the 1.8 branch you
+don't need to do anything, cairo for OS/2 is included there.
 
 
 - Sources
-The required source code is contained in this package. It is compiled
-from bits of the packages
+The required source code is contained in this package. It is compiled from bits
+of the packages
    expat-1.95.8
    fontconfig-2.3.2-os2
    freetype-2.1.10       (plus freetype security fixes)
@@ -54,17 +53,24 @@ the freetype security fixes come from the Gentoo freetype package (file
 freetype-2.1.10-security_batch-r1.patch.bz2).
 
 
+- Using the DLL
+If you built a Mozilla application with SVG support, you will not be able to
+start it until you place mozftcfg.dll into the LIBPATH or the program
+directory. If you want to ship a program linked against this DLL, the best will
+be to copy both mozftcfg.COPYING and mozftcfg.dll into the program directory in
+the package.
+
+
 - Copyright
-See mozftcfg.COPYING for copyright information. That file contains the
-required copyright notes from all three base packages. If you want to
-ship a Mozilla build containing cairo, please be sure to copy both 
-mozftcfg.COPYING and mozftcfg.dll into the program directory.
-For the included cairo files, please see cairo.COPYING, cairo.COPYING-MPL-1.1,
-cairo.COPYING-LGPL-2.1. The OS/2 cairo files are from Doodle's OS/2 port.
+See mozftcfg.COPYING for copyright information. That file contains the required
+copyright notes from all three base packages. For the included cairo files,
+please see cairo.COPYING, cairo.COPYING-MPL-1.1, cairo.COPYING-LGPL-2.1. The
+OS/2 cairo files are from Doodle's OS/2 port (v.1.0.4 for Mozilla 1.8.0 branch
+and v.1.2.2 for the trunk).
 
 
 - Contact person
-If you want to complain please post to the group mozilla.dev.ports.os2
-on the newsserver news.mozilla.org.
+If you want to complain please post to the group mozilla.dev.ports.os2 on the
+newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 24Jul2006
+Peter Weilbacher <mozilla@Weilbacher.org>, 26Aug2006
