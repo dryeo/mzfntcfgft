@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    The FreeType memory management macros (specification).               */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2004, 2005 by                               */
+/*  Copyright 1996-2001, 2002, 2004, 2005, 2006, 2007 by                   */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg                       */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -56,9 +56,11 @@ FT_BEGIN_HEADER
   /*************************************************************************/
   /*************************************************************************/
 
-  /* C++ absolutely hates statements like p = (void*)anything; where 'p' is
-   * a typed pointer. Since we don't have a typeof operator in standard C++,
-   * we need some really ugly casts, like:
+
+  /*
+   *  C++ refuses to handle statements like p = (void*)anything; where `p'
+   *  is a typed pointer.  Since we don't have a `typeof' operator in
+   *  standard C++, we have to use ugly casts.
    */
 
 #ifdef __cplusplus
@@ -68,25 +70,28 @@ FT_BEGIN_HEADER
 #endif
 
 
+
 #ifdef FT_DEBUG_MEMORY
+
   FT_BASE( const char* )  _ft_debug_file;
   FT_BASE( long )         _ft_debug_lineno;
 
-#  define FT_DEBUG_INNER( exp )  ( _ft_debug_file   = __FILE__, \
-                                   _ft_debug_lineno = __LINE__, \
-                                   (exp) )
+#define FT_DEBUG_INNER( exp )  ( _ft_debug_file   = __FILE__, \
+                                 _ft_debug_lineno = __LINE__, \
+                                 (exp) )
 
-#  define FT_ASSIGNP_INNER( p, exp )  ( _ft_debug_file   = __FILE__, \
-                                        _ft_debug_lineno = __LINE__, \
-                                        FT_ASSIGNP( p, exp ) )
+#define FT_ASSIGNP_INNER( p, exp )  ( _ft_debug_file   = __FILE__, \
+                                      _ft_debug_lineno = __LINE__, \
+                                      FT_ASSIGNP( p, exp ) )
 
 #else /* !FT_DEBUG_MEMORY */
 
-#  define FT_DEBUG_INNER( exp )       (exp)
-#  define FT_ASSIGNP_INNER( p, exp )  FT_ASSIGNP( p, exp )
+#define FT_DEBUG_INNER( exp )       (exp)
+#define FT_ASSIGNP_INNER( p, exp )  FT_ASSIGNP( p, exp )
 
 #endif /* !FT_DEBUG_MEMORY */
-  
+
+
   /*
    *  The allocation functions return a pointer, and the error code
    *  is written to through the `p_error' parameter.  See below for
@@ -180,6 +185,7 @@ FT_BEGIN_HEADER
 
 #define FT_MEM_SET_ERROR( cond )  ( (cond), error != 0 )
 
+
 #define FT_MEM_SET( dest, byte, count )     ft_memset( dest, byte, count )
 
 #define FT_MEM_COPY( dest, source, count )  ft_memcpy( dest, source, count )
@@ -190,6 +196,7 @@ FT_BEGIN_HEADER
 #define FT_MEM_ZERO( dest, count )  FT_MEM_SET( dest, 0, count )
 
 #define FT_ZERO( p )                FT_MEM_ZERO( p, sizeof ( *(p) ) )
+
 
 #define FT_ARRAY_ZERO( dest, count )                        \
           FT_MEM_ZERO( dest, (count) * sizeof ( *(dest) ) )
@@ -202,13 +209,14 @@ FT_BEGIN_HEADER
 
 
   /*
-   *  Return the maximum number of adressable elements in an array.
+   *  Return the maximum number of addressable elements in an array.
    *  We limit ourselves to INT_MAX, rather than UINT_MAX, to avoid
    *  any problems.
    */
 #define FT_ARRAY_MAX( ptr )           ( FT_INT_MAX / sizeof ( *(ptr) ) )
 
 #define FT_ARRAY_CHECK( ptr, count )  ( (count) <= FT_ARRAY_MAX( ptr ) )
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -235,6 +243,7 @@ FT_BEGIN_HEADER
           FT_ASSIGNP_INNER( ptr, ft_mem_qrealloc( memory, sizeof ( *(ptr) ), \
                                                   (cursz), (newsz),          \
                                                   (ptr), &error ) )
+
 
 #define FT_ALLOC( ptr, size )                           \
           FT_MEM_SET_ERROR( FT_MEM_ALLOC( ptr, size ) )
@@ -281,33 +290,72 @@ FT_BEGIN_HEADER
 #define FT_QRENEW_ARRAY( ptr, curcnt, newcnt )                          \
           FT_MEM_SET_ERROR( FT_MEM_RENEW_ARRAY( ptr, curcnt, newcnt ) )
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* the following macros are obsolete but kept for compatibility reasons  */
-  /*                                                                       */
 
-#define FT_MEM_ALLOC_ARRAY( _pointer_, _count_, _type_ )           \
-          FT_MEM_ALLOC( _pointer_, (_count_) * sizeof ( _type_ ) )
+#ifdef FT_CONFIG_OPTION_OLD_INTERNALS
 
-#define FT_MEM_REALLOC_ARRAY( _pointer_, _old_, _new_, _type_ )    \
-          FT_MEM_REALLOC( _pointer_, (_old_) * sizeof ( _type ),   \
-                                     (_new_) * sizeof ( _type_ ) )
+  FT_BASE( FT_Error )
+  FT_Alloc( FT_Memory  memory,
+            FT_Long    size,
+            void*     *P );
+
+  FT_BASE( FT_Error )
+  FT_QAlloc( FT_Memory  memory,
+             FT_Long    size,
+             void*     *p );
+
+  FT_BASE( FT_Error )
+  FT_Realloc( FT_Memory  memory,
+              FT_Long    current,
+              FT_Long    size,
+              void*     *P );
+
+  FT_BASE( FT_Error )
+  FT_QRealloc( FT_Memory  memory,
+               FT_Long    current,
+               FT_Long    size,
+               void*     *p );
+
+  FT_BASE( void )
+  FT_Free( FT_Memory  memory,
+           void*     *P );
+
+#endif /* FT_CONFIG_OPTION_OLD_INTERNALS */
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The following macros are variants of their FT_MEM_XXXX equivalents;   */
-  /* they are used to set an _implicit_ `error' variable and return TRUE   */
-  /* if an error occured (i.e. if 'error != 0').                           */
-  /*                                                                       */
+  FT_BASE( FT_Pointer )
+  ft_mem_strdup( FT_Memory    memory,
+                 const char*  str,
+                 FT_Error    *p_error );
 
-#define FT_ALLOC_ARRAY( _pointer_, _count_, _type_ )           \
-          FT_ALLOC( _pointer_, (_count_) * sizeof ( _type_ ) )
+  FT_BASE( FT_Pointer )
+  ft_mem_dup( FT_Memory    memory,
+              const void*  address,
+              FT_ULong     size,
+              FT_Error    *p_error );
 
-#define FT_REALLOC_ARRAY( _pointer_, _old_, _new_, _type_ )   \
-          FT_REALLOC( _pointer, (_old_) * sizeof ( _type_ ),  \
-                                (_new_) * sizeof ( _type_ ) )
+#define FT_MEM_STRDUP( dst, str )                                     \
+          (dst) = ft_mem_strdup( memory, (const char*)(str), &error )
 
+#define FT_STRDUP( dst, str )                           \
+          FT_MEM_SET_ERROR( FT_MEM_STRDUP( dst, str ) )
+
+#define FT_MEM_DUP( dst, address, size )                                    \
+          (dst) = ft_mem_dup( memory, (address), (FT_ULong)(size), &error )
+
+#define FT_DUP( dst, address, size )                           \
+          FT_MEM_SET_ERROR( FT_MEM_DUP( dst, address, size ) )
+
+
+  /* Return >= 1 if a truncation occurs.            */
+  /* Return 0 if the source string fits the buffer. */
+  /* This is *not* the same as strlcpy().           */
+  FT_BASE( FT_Int )
+  ft_mem_strcpyn( char*        dst,
+                  const char*  src,
+                  FT_ULong     size );
+
+#define FT_STRCPYN( dst, src, size )                                         \
+          ft_mem_strcpyn( (char*)dst, (const char*)(src), (FT_ULong)(size) )
 
  /* */
 

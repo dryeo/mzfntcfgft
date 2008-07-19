@@ -1,7 +1,7 @@
 # Defines for Makefile for GNU make
 
-EXPAT_FONTCONFIG_NAME = mzfntcfg
-EXPAT_FONTCONFIG_OUT = $(EXPAT_FONTCONFIG_NAME).lib
+FONTCONFIG_NAME = mzfntcfg
+FONTCONFIG_OUT = $(FONTCONFIG_NAME).dll
 
 FREETYPE_NAME = mozft
 FREETYPE_OUT = $(FREETYPE_NAME).lib
@@ -12,7 +12,9 @@ INCLUDEDIR = include
 SRCDIR = src
 
 CC = gcc
-CFLAGS = -Wall -O2 -Zomf -pipe
-#CFLAGS = -Wall -g -O2 -Zomf -pipe
-	
+CFLAGS = -Wall -O2 -Zomf -pipe 
+#CFLAGS += -g
+DLLFLAGS = -Zomf -Zdll -Zmap -pipe
+DLLFLAGS += -Zlinker /EXEPACK:2 -Zlinker /PACKCODE -Zlinker /PACKCODE -s -O2 
+#DLLFLAGS += -g 
 

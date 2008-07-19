@@ -8,12 +8,12 @@
 # LICENSE.TXT.  By continuing to use, modify, or distribute this file you
 # indicate that you have read the license and understand and accept it
 # fully.
-prefix=Q:/mzfntcfgft
-exec_prefix=Q:/mzfntcfgft
+prefix=D:/mzfntcfgft
+exec_prefix=D:/mzfntcfgft
 exec_prefix_set=no
-includedir=Q:/mzfntcfgft/include
-libdir=Q:/mzfntcfgft/lib
-enable_shared=Q:/mzfntcfgft/share
+includedir=D:/mzfntcfgft/include
+libdir=D:/mzfntcfgft/lib
+enable_shared=D:/mzfntcfgft/share
 wl=@wl@
 hardcode_libdir_flag_spec='@hardcode_libdir_flag_spec@'
 usage()
@@ -66,17 +66,17 @@ while test $# -gt 0 ; do
     echo_exec_prefix=yes
     ;;
   --version)
-    echo 2.1.10
+    echo 2.3.4
     exit 0
     ;;
   --ftversion)
-    major=`grep define Q:/mzfntcfgft/include/freetype/freetype.h \
+    major=`grep define D:/mzfntcfgft/include/freetype/freetype.h \
            | grep FREETYPE_MAJOR \
            | sed 's/.*[ 	]\([0-9][0-9]*\).*/\1/'`
-    minor=`grep define Q:/mzfntcfgft/include/freetype/freetype.h \
+    minor=`grep define D:/mzfntcfgft/include/freetype/freetype.h \
            | grep FREETYPE_MINOR \
            | sed 's/.*[ 	]\([0-9][0-9]*\).*/\1/'`
-    patch=`grep define Q:/mzfntcfgft/include/freetype/freetype.h \
+    patch=`grep define D:/mzfntcfgft/include/freetype/freetype.h \
            | grep FREETYPE_PATCH \
            | sed 's/.*[ 	]\([0-9][0-9]*\).*/\1/'`
     echo $major.$minor.$patch

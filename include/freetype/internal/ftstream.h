@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Stream handling (specification).                                     */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2004, 2005 by                               */
+/*  Copyright 1996-2001, 2002, 2004, 2005, 2006 by                         */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -328,7 +328,7 @@ FT_BEGIN_HEADER
 #ifndef FT_CONFIG_OPTION_NO_DEFAULT_SYSTEM
 
   /* initialize a stream for reading a regular system stream */
-  FT_EXPORT( FT_Error )
+  FT_BASE( FT_Error )
   FT_Stream_Open( FT_Stream    stream,
                   const char*  filepathname );
 
@@ -414,7 +414,7 @@ FT_BEGIN_HEADER
   /*                                                                    */
   /* Useful to optimize access to memory-based streams transparently.   */
   /*                                                                    */
-  /* All extracted frames must be `freed` with a call to the function   */
+  /* All extracted frames must be `freed' with a call to the function   */
   /* FT_Stream_ReleaseFrame().                                          */
   /*                                                                    */
   FT_BASE( FT_Error )

@@ -4,7 +4,7 @@ DEPTH = .
 
 include $(DEPTH)/defines.mk
 
-all:	$(LIBDIR)/$(FREETYPE_OUT) $(BINDIR)/freetype-config $(LIBDIR)/$(EXPAT_FONTCONFIG_OUT)
+all:	$(LIBDIR)/$(FREETYPE_OUT) $(BINDIR)/freetype-config $(LIBDIR)/$(FONTCONFIG_OUT)
 
 $(LIBDIR)/$(FREETYPE_OUT):
 	$(MAKE) -C $(SRCDIR) $(FREETYPE_OUT)
@@ -16,10 +16,12 @@ $(BINDIR)/freetype-config:	freetype-config.in
 	    -e s,@__FTLIBNAME__@,$(FREETYPE_NAME), \
 	    $< > $@
 
-$(LIBDIR)/$(EXPAT_FONTCONFIG_OUT):
-	$(MAKE) -C $(SRCDIR) $(EXPAT_FONTCONFIG_OUT)
-	cp -f $(SRCDIR)/$(EXPAT_FONTCONFIG_NAME).lib \
+$(LIBDIR)/$(FONTCONFIG_OUT):
+	$(MAKE) -C $(SRCDIR) $(FONTCONFIG_OUT)
+	cp -f $(SRCDIR)/$(FONTCONFIG_NAME).lib   \
+	      $(SRCDIR)/$(FONTCONFIG_NAME).map   \
 	   $(LIBDIR)
+	cp -f $(SRCDIR)/$(FONTCONFIG_NAME).dll $@
 
 
 .PHONY: clean nuke
@@ -30,7 +32,9 @@ clean:
 
 nuke:	clean
 	@echo "Nuke also all targets..."
-	rm -f $(LIBDIR)/$(EXPAT_FONTCONFIG_NAME).lib \
+	rm -f $(LIBDIR)/$(FONTCONFIG_NAME).lib \
+	      $(LIBDIR)/$(FONTCONFIG_NAME).dll \
+	      $(LIBDIR)/$(FONTCONFIG_NAME).map \
 	      $(LIBDIR)/$(FREETYPE_OUT)              \
 	      $(BINDIR)/freetype-config
 

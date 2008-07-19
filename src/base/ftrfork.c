@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Embedded resource forks accessor (body).                             */
 /*                                                                         */
-/*  Copyright 2004, 2005 by                                                */
+/*  Copyright 2004, 2005, 2006 by                                          */
 /*  Masatake YAMATO and Redhat K.K.                                        */
 /*                                                                         */
 /*  FT_Raccess_Get_HeaderInfo() and raccess_guess_darwin_hfsplus() are     */
@@ -647,7 +647,7 @@
     error = raccess_guess_apple_double( library, stream2, file_name,
                                         &nouse, result_offset );
 
-    FT_Stream_Close( stream2 );
+    FT_Stream_Free( stream2, 0 );
 
     return error;
   }
@@ -662,7 +662,7 @@
     char*        tmp;
     const char*  slash;
     unsigned     new_length;
-    FT_ULong     error = FT_Err_Ok;
+    FT_Error     error = FT_Err_Ok;
 
     FT_UNUSED( error );
 

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    ANSI-specific configuration file (specification only).               */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004 by                               */
+/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007 by                   */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -126,7 +126,14 @@ FT_BEGIN_HEADER
   /*                                                                       */
 #if ( defined( __APPLE__ ) && !defined( DARWIN_NO_CARBON ) ) || \
     ( defined( __MWERKS__ ) && defined( macintosh )        )
+  /* no Carbon frameworks for 64bit 10.4.x */
+#include "AvailabilityMacros.h"
+#if defined( __LP64__ ) && \
+    ( MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4 )
+#define DARWIN_NO_CARBON 1
+#else
 #define FT_MACINTOSH 1
+#endif
 #endif
 
 
@@ -192,9 +199,7 @@ FT_BEGIN_HEADER
 
 #elif defined( __WATCOMC__ )   /* Watcom C++ */
 
-  /* this compiler provides the __int64 type */
-#define FT_LONG64
-#define FT_INT64 __int64
+  /* Watcom doesn't provide 64-bit data types */
 
 #elif defined( __MWERKS__ )    /* Metrowerks CodeWarrior */
 
@@ -203,7 +208,7 @@ FT_BEGIN_HEADER
 
 #elif defined( __GNUC__ )
 
-  /* GCC provides the "long long" type */
+  /* GCC provides the `long long' type */
 #define FT_LONG64
 #define FT_INT64  long long int
 
@@ -267,9 +272,9 @@ FT_BEGIN_HEADER
 #ifndef FT_BASE_DEF
 
 #ifdef __cplusplus
-#define FT_BASE_DEF( x )  extern "C"  x
+#define FT_BASE_DEF( x )  x
 #else
-#define FT_BASE_DEF( x )  extern  x
+#define FT_BASE_DEF( x )  x
 #endif
 
 #endif /* !FT_BASE_DEF */

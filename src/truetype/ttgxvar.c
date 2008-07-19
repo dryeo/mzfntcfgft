@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType GX Font Variation loader                                    */
 /*                                                                         */
-/*  Copyright 2004, 2005 by                                                */
+/*  Copyright 2004, 2005, 2006, 2007 by                                    */
 /*  David Turner, Robert Wilhelm, Werner Lemberg, and George Williams.     */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -22,7 +22,7 @@
 /*                                                                         */
 /*   http://developer.apple.com/fonts/TTRefMan/RM06/Chap6[fgca]var.html    */
 /*                                                                         */
-/* The documentation for `fvar' is inconsistant.  At one point it says     */
+/* The documentation for `fvar' is inconsistent.  At one point it says     */
 /* that `countSizePairs' should be 3, at another point 2.  It should be 2. */
 /*                                                                         */
 /* The documentation for `gvar' is not intelligible; `cvar' refers you to  */
@@ -1255,7 +1255,7 @@
         for ( j = 0; j < point_count; ++j )
         {
           int  pindex = localpoints[j];
-          
+
           face->cvt[pindex] = (FT_Short)( face->cvt[pindex] +
                                           FT_MulFix( deltas[j], apply ) );
         }

@@ -4,96 +4,10 @@ DEPTH = ..
 
 include $(DEPTH)/defines.mk
 
-EXPAT_CFLAGS = -DHAVE_EXPAT_CONFIG_H
-# EXPAT_SOURCES = \
-# 	xmlparse.c \
-# 	xmlrole.c  \
-# 	xmltok.c
-EXPAT_OBJS = \
-	xmlparse.o \
-	xmlrole.o  \
-	xmltok.o
+FONTCONFIG_CFLAGS = -DFC_CACHE_VERSION_STRING=\"v1.0\"
+FONTCONFIG_DLLFLAGS = -l$(FREETYPE_NAME) -L../$(LIBDIR)
+FONTCONFIG_OBJS = fontconfig.o 
 
-FONTCONFIG_CFLAGS = \
-	-DFONTCONFIG_FILE='"~/fonts_cairo.conf"' \
-	-DHAVE_FT_GET_BDF_PROPERTY               \
-	-DHAVE_FT_GET_PS_FONT_INFO               \
-	-DHAVE_FT_GET_NEXT_CHAR
-# FONTCONFIG_SOURCES = \
-# 	fcatomic.c     \
-# 	fcblanks.c     \
-# 	fccache.c      \
-# 	fccfg.c        \
-# 	fccharset.c    \
-# 	fcdbg.c        \
-# 	fcdefault.c    \
-# 	fcdefaultcfg.c \
-# 	fcdir.c        \
-# 	fcfreetype.c   \
-# 	fcfs.c         \
-# 	fcinit.c       \
-# 	fclang.c       \
-# 	fclist.c       \
-# 	fcmatch.c      \
-# 	fcmatrix.c     \
-# 	fcname.c       \
-# 	fcpat.c        \
-# 	fcstr.c        \
-# 	fcxml.c
-FONTCONFIG_OBJS = \
-	fcatomic.o     \
-	fcblanks.o     \
-	fccache.o      \
-	fccfg.o        \
-	fccharset.o    \
-	fcdbg.o        \
-	fcdefault.o    \
-	fcdefaultcfg.o \
-	fcdir.o        \
-	fcfreetype.o   \
-	fcfs.o         \
-	fcinit.o       \
-	fclang.o       \
-	fclist.o       \
-	fcmatch.o      \
-	fcmatrix.o     \
-	fcname.o       \
-	fcpat.o        \
-	fcstr.o        \
-	fcxml.o
-
-# FREETYPE_SOURCES = \
-# 	base/ftsystem.c     \
-# 	base/ftinit.c       \
-# 	base/ftdebug.c      \
-# 	base/ftbase.c       \
-# 	base/ftglyph.c      \
-# 	base/ftbbox.c       \
-# 	base/ftmm.c         \
-# 	base/ftpfr.c        \
-# 	base/ftbdf.c        \
-# 	base/ftwinfnt.c     \
-# 	base/fttype1.c      \
-# 	autofit/autofit.c   \
-# 	sfnt/sfnt.c         \
-# 	cff/cff.c           \
-# 	pfr/pfr.c           \
-# 	bdf/bdf.c           \
-# 	pcf/pcf.c           \
-# 	psnames/psnames.c   \
-# 	psaux/psaux.c       \
-# 	truetype/truetype.c \
-# 	type1/type1.c       \
-# 	cid/type1cid.c      \
-# 	winfonts/winfnt.c   \
-# 	raster/raster.c     \
-# 	smooth/smooth.c     \
-# 	base/ftbitmap.c     \
-# 	gzip/ftgzip.c       \
-# 	lzw/ftlzw.c         \
-# 	type42/type42.c     \
-# 	pshinter/pshinter.c \
-# 	otvalid/otvalid.c
 FREETYPE_OBJS = \
 	base/ftsystem.o     \
 	base/ftinit.o       \
@@ -102,60 +16,62 @@ FREETYPE_OBJS = \
 	base/ftglyph.o      \
 	base/ftbbox.o       \
 	base/ftmm.o         \
-	base/ftpfr.o        \
-	base/ftbdf.o        \
-	base/ftwinfnt.o     \
 	base/fttype1.o      \
 	autofit/autofit.o   \
 	sfnt/sfnt.o         \
-	cff/cff.o           \
-	pfr/pfr.o           \
-	bdf/bdf.o           \
-	pcf/pcf.o           \
 	psnames/psnames.o   \
 	psaux/psaux.o       \
 	truetype/truetype.o \
 	type1/type1.o       \
 	cid/type1cid.o      \
-	winfonts/winfnt.o   \
 	raster/raster.o     \
 	smooth/smooth.o     \
 	base/ftbitmap.o     \
-	gzip/ftgzip.o       \
-	lzw/ftlzw.o         \
 	type42/type42.o     \
 	pshinter/pshinter.o \
 	otvalid/otvalid.o
+# unused objects:
+#	base/ftbdf.o
+#	bdf/bdf.o
+#	pcf/pcf.o
+#	gzip/ftgzip.o
+#	lzw/ftlzw.o
+#	base/ftwinfnt.o
+#	winfonts/winfnt.o
+#	base/ftpfr.o
+#	pfr/pfr.o
+#	cff/cff.o
+FREETYPE_CFLAGS = -DFT2_BUILD_LIBRARY=1
 
-CFLAGS += -I../$(INCLUDEDIR) $(EXPAT_CFLAGS) $(FONTCONFIG_CFLAGS)
+CFLAGS += -I../$(INCLUDEDIR) $(FONTCONFIG_CFLAGS) $(FREETYPE_CFLAGS)
 
 .c.o:	
 	@echo $<
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(EXPAT_FONTCONFIG_OUT): $(EXPAT_OBJS) $(FONTCONFIG_OBJS)
-	@echo "Create Expat and Fontconfig library ($(FREETYPE_OUT))..."
-	emxomfar rc $@ $^
+$(FONTCONFIG_OUT): $(FONTCONFIG_OBJS)
+	@echo "Link Fontconfig into $(FONTCONFIG_OUT)..."
+	@echo "LIBRARY $(FONTCONFIG_NAME) INITINSTANCE TERMINSTANCE" \
+	   > $(FONTCONFIG_NAME).def
+	@echo "DESCRIPTION '$(FONTCONFIG_NAME), a new OS/2 Fontconfig version from Netlabs, v1.0'" \
+	   >> $(FONTCONFIG_NAME).def
+	cat exports.list >> $(FONTCONFIG_NAME).def
+
+	$(CC) $(DLLFLAGS) $(FONTCONFIG_DLLFLAGS) -o $@ \
+	      $(FONTCONFIG_NAME).def $^
+	emximp -o $(FONTCONFIG_NAME).lib $(FONTCONFIG_NAME).def
 
 $(FREETYPE_OUT):	$(FREETYPE_OBJS)
 	@echo "Create FreeType library ($(FREETYPE_OUT))..."
 	emxomfar rc $@ $(FREETYPE_OBJS)
 
-#   ftbase.o ftbbox.o ftdebug.o ftglyph.o ftinit.o ftmm.o ftsystem.o        \
-#   ftpfr.o ftbdf.o ftwinfnt.o fttype1.o autofit.o sfnt.o cff.o pfr.o bdf.o \
-#   pcf.o psnames.o psaux.o truetype.o type1.o type1cid.o winfnt.o raster.o \
-#   smooth.o ftbitmap.o ftgzip.o ftlzw.o type42.o pshinter.o otvalid.o
-#
-#   xmlparse.o xmlrole.o xmltok.o                                           \
-#   fcatomic.o fcblanks.o fccache.o fccfg.o fccharset.o fcdbg.o fcdefault.o \
-#   fcdefaultcfg.o fcdir.o fcfreetype.o fcfs.o fcinit.o fclang.o fclist.o   \
-#   fcmatch.o fcmatrix.o fcname.o fcpat.o fcstr.o fcxml.o
-  
-
 .PHONY: clean
 
 clean:	
-	rm -f $(EXPAT_OBJS) $(FONTCONFIG_OBJS) $(FREETYPE_OBJS) \
-	      $(EXPAT_FONTCONFIG_NAME).lib \
+	rm -f $(FONTCONFIG_OBJS) $(FREETYPE_OBJS) \
+	      $(FONTCONFIG_NAME).def \
+	      $(FONTCONFIG_NAME).lib \
+	      $(FONTCONFIG_NAME).dll \
+	      $(FONTCONFIG_NAME).map \
 	      $(FREETYPE_OUT)
 
