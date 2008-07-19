@@ -16,6 +16,9 @@ installed and then run
 This compiles all files, links them into mozftlib DLL and adapts the
 installation to your directory tree. Then it removes the unnecessary
 object files.
+(If for whatever reason you want to recompile everything, do
+   make -s nuke all clean
+This comes in handy on GCC upgrades.)
 
 Now be sure to also adapt the FONTCONFIG and FREETYPE variables in
 your setmozenv.cmd, so that this package can be used by the Mozilla
@@ -34,6 +37,9 @@ cairo for OS/2, you have to copy the files from one of the cairo_*
 subdirectories into your mozilla tree at
    mozilla\gfx\cairo\cairo\src
 When doing that be sure to overwrite the existing cairo-features.h.in.
+On the Mozilla trunk, you also need to apply a patch. For that, go to
+the directory and then execute
+   patch -p4 < cairo_h.diff
 
 
 - Sources
@@ -51,10 +57,12 @@ See mozftcfg.COPYING for copyright information. That file contains the
 required copyright notes from all three base packages. If you want to
 ship a Mozilla build containing cairo, please be sure to copy both 
 mozftcfg.COPYING and mozftcfg.dll into the program directory.
+For the included cairo files, please see cairo.COPYING, cairo.COPYING-MPL-1.1,
+cairo.COPYING-LGPL-2.1. The OS/2 cairo files are from Doodle's OS/2 port.
 
 
 - Contact person
 If you want to complain please post to the group mozilla.dev.ports.os2
 on the newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 22Apr2006
+Peter Weilbacher <mozilla@Weilbacher.org>, 29Apr2006

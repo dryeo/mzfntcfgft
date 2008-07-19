@@ -1,0 +1,23 @@
+Index: gfx/cairo/cairo/src/cairo.h
+===================================================================
+RCS file: /cvsroot/mozilla/gfx/cairo/cairo/src/cairo.h,v
+retrieving revision 1.13
+diff -u -r1.13 cairo.h
+--- gfx/cairo/cairo/src/cairo.h	17 Mar 2006 22:24:19 -0000	1.13
++++ gfx/cairo/cairo/src/cairo.h	29 Apr 2006 15:55:54 -0000
+@@ -1235,6 +1235,7 @@
+  * @CAIRO_SURFACE_TYPE_GLITZ: The surface is of type glitz
+  * @CAIRO_SURFACE_TYPE_QUARTZ: The surface is of type quartz
+  * @CAIRO_SURFACE_TYPE_WIN32: The surface is of type win32
++ * @CAIRO_SURFACE_TYPE_OS2: The surface is of type os2
+  * @CAIRO_SURFACE_TYPE_BEOS: The surface is of type beos
+  * @CAIRO_SURFACE_TYPE_DIRECTFB: The surface is of type directfb
+  * @CAIRO_SURFACE_TYPE_SVG: The surface is of type svg
+@@ -1268,6 +1269,7 @@
+     CAIRO_SURFACE_TYPE_GLITZ,
+     CAIRO_SURFACE_TYPE_QUARTZ,
+     CAIRO_SURFACE_TYPE_WIN32,
++    CAIRO_SURFACE_TYPE_OS2,
+     CAIRO_SURFACE_TYPE_BEOS,
+     CAIRO_SURFACE_TYPE_DIRECTFB,
+     CAIRO_SURFACE_TYPE_SVG,
