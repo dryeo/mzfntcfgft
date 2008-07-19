@@ -1235,7 +1235,7 @@
       }
 
       /* access element */
-      if ( off1 )
+      if ( off1 && off2 > off1 )
       {
         *pbyte_len = off2 - off1;
 
@@ -1688,6 +1688,8 @@
 
       for ( i = 0; i < num_glyphs; i++ )
         charset->cids[charset->sids[i]] = (FT_UShort)i;
+
+      charset->max_cid = max_cid;
     }
 
   Exit:
@@ -2011,7 +2013,7 @@
 
     if ( error )
       goto Exit;
-
+ 
     /* if it is a CID font, we stop there */
     if ( top->cid_registry != 0xFFFFU )
       goto Exit;
@@ -2040,6 +2042,9 @@
       FT_FRAME_EXIT();
       if ( error )
         goto Exit;
+
+      /* ensure that 'num_blue_values' is even */
+      priv->num_blue_values &= ~1;
     }
 
     /* read the local subrs, if any */
@@ -2293,8 +2298,6 @@
     {
       for ( idx = 0; idx < font->num_subfonts; idx++ )
         cff_subfont_done( memory, font->subfonts[idx] );
-
-      FT_FREE( font->subfonts );
     }
 
     cff_encoding_done( &font->encoding );

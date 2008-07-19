@@ -175,7 +175,7 @@
     bitmap->rows  = height;
     bitmap->pitch = pitch;
 
-    if ( FT_ALLOC( bitmap->buffer, (FT_ULong)pitch * height ) )
+    if ( FT_ALLOC_MULT( bitmap->buffer, pitch, height ) )
       goto Exit;
 
     slot->internal->flags |= FT_GLYPH_OWN_BITMAP;

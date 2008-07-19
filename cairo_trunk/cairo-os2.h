@@ -51,7 +51,7 @@ CAIRO_BEGIN_DECLS
 /* internal structures and mutexes.                               */
 
 cairo_public void
-cairo_call   cairo_os2_initialize();
+cairo_os2_initialize(void);
 
 /* cairo_os2_uninitialize() :                                     */
 /*                                                                */
@@ -62,7 +62,7 @@ cairo_call   cairo_os2_initialize();
 /* to let it free all the resources it has allocated.             */
 
 cairo_public void
-cairo_call   cairo_os2_uninitialize();
+cairo_os2_uninitialize(void);
 
 #if CAIRO_HAS_OS2_SURFACE
 
@@ -82,8 +82,8 @@ cairo_call   cairo_os2_uninitialize();
 /* from the window/HPS.                                           */
 
 cairo_public cairo_surface_t *
-cairo_call   cairo_os2_surface_create(HPS hpsClientWindow,
-                                      int iWidth, int iHeight);
+cairo_os2_surface_create (HPS hpsClientWindow,
+                          int iWidth, int iHeight);
 
 /* cairo_os2_surface_set_HWND() :                                 */
 /*                                                                */
@@ -104,8 +104,8 @@ cairo_call   cairo_os2_surface_create(HPS hpsClientWindow,
 /* message processing loop, which is the safest way to do.        */
 
 cairo_public void
-cairo_call   cairo_os2_surface_set_HWND(cairo_surface_t *pSurface,
-                                        HWND hwndClientWindow);
+cairo_os2_surface_set_HWND (cairo_surface_t *pSurface,
+                            HWND hwndClientWindow);
 
 /* cairo_os2_surface_set_blit_as_changes() :                      */
 /*                                                                */
@@ -119,8 +119,8 @@ cairo_call   cairo_os2_surface_set_HWND(cairo_surface_t *pSurface,
 /* of the window.                                                 */
 
 cairo_public void
-cairo_call   cairo_os2_surface_set_blit_as_changes(cairo_surface_t *pSurface,
-                                                   int bBlitAsChanges);
+cairo_os2_surface_set_blit_as_changes (cairo_surface_t *pSurface,
+                                       int bBlitAsChanges);
 
 /* cairo_os2_surface_get_blit_as_changes() :                      */
 /*                                                                */
@@ -128,7 +128,7 @@ cairo_call   cairo_os2_surface_set_blit_as_changes(cairo_surface_t *pSurface,
 /* TRUE by default.                                               */
 
 cairo_public int
-cairo_call   cairo_os2_surface_get_blit_as_changes(cairo_surface_t *pSurface);
+cairo_os2_surface_get_blit_as_changes (cairo_surface_t *pSurface);
 
 /* cairo_os2_surface_window_resized() :                           */
 /*                                                                */
@@ -152,9 +152,9 @@ cairo_call   cairo_os2_surface_get_blit_as_changes(cairo_surface_t *pSurface);
 /*  - waiting for all the buffers to be released timed out        */
 
 cairo_public int
-cairo_call   cairo_os2_surface_window_resized(cairo_surface_t *pSurface,
-                                              int iNewWidth, int iNewHeight,
-                                              int iTimeOut);
+cairo_os2_surface_window_resized (cairo_surface_t *pSurface,
+                                  int iNewWidth, int iNewHeight,
+                                  int iTimeOut);
 
 /* cairo_os2_surface_repaint_window() :                           */
 /*                                                                */
@@ -180,9 +180,9 @@ cairo_call   cairo_os2_surface_window_resized(cairo_surface_t *pSurface,
 /* function to handle dirty areas too, so you were warned. :)     */
 
 cairo_public void
-cairo_call   cairo_os2_surface_repaint_window(cairo_surface_t *pSurface,
-                                              HPS hpsBeginPaint,
-                                              PRECTL prclBeginPaintRect);
+cairo_os2_surface_repaint_window (cairo_surface_t *pSurface,
+                                  HPS hpsBeginPaint,
+                                  PRECTL prclBeginPaintRect);
 
 #endif /* CAIRO_HAS_OS2_SURFACE */
 

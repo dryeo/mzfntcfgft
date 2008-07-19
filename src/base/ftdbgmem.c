@@ -36,6 +36,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+  FT_BASE_DEF( const char* )  _ft_debug_file   = 0;
+  FT_BASE_DEF( long )         _ft_debug_lineno = 0;
 
   extern void
   FT_DumpMemory( FT_Memory  memory );
@@ -48,7 +50,11 @@
 
 #define FT_MEM_VAL( addr )  ((FT_ULong)(FT_Pointer)( addr ))
 
-
+  /*
+   * This structure holds statistics for a single allocation/release
+   * site.  This is useful to know where memory operations happen the
+   * most.
+   */
   typedef struct FT_MemSourceRec_
   {
     const char*   file_name;
@@ -76,7 +82,13 @@
  */
 #define FT_MEM_SOURCE_BUCKETS  128
 
-
+  /*
+   *  This structure holds information related to a single allocated
+   *  memory block.  If KEEPALIVE is defined, blocks that are freed by
+   *  FreeType are never released to the system.  Instead, their `size'
+   *  field is set to -size.  This is mainly useful to detect double frees,
+   *  at the price of large memory footprint during execution.
+   */
   typedef struct  FT_MemNodeRec_
   {
     FT_Byte*      address;
@@ -94,6 +106,10 @@
   } FT_MemNodeRec;
 
 
+  /*
+   *  The global structure, containing compound statistics and all hash
+   *  tables.
+   */
   typedef struct  FT_MemTableRec_
   {
     FT_ULong         size;
@@ -112,9 +128,6 @@
     FT_ULong         alloc_count_max;
 
     FT_MemSource     sources[FT_MEM_SOURCE_BUCKETS];
-
-    const char*      file_name;
-    FT_Long          line_no;
 
     FT_Bool          keep_alive;
 
@@ -446,8 +459,8 @@
     FT_MemSource  node, *pnode;
 
 
-    hash  = (FT_UInt32)(void*)table->file_name +
-              (FT_UInt32)( 5 * table->line_no );
+    hash  = (FT_UInt32)(void*)_ft_debug_file +
+              (FT_UInt32)( 5 * _ft_debug_lineno );
     pnode = &table->sources[hash % FT_MEM_SOURCE_BUCKETS];
 
     for ( ;; )
@@ -456,8 +469,8 @@
       if ( node == NULL )
         break;
 
-      if ( node->file_name == table->file_name &&
-           node->line_no   == table->line_no   )
+      if ( node->file_name == _ft_debug_file &&
+           node->line_no   == _ft_debug_lineno   )
         goto Exit;
 
       pnode = &node->link;
@@ -468,8 +481,8 @@
       ft_mem_debug_panic(
         "not enough memory to perform memory debugging\n" );
 
-    node->file_name = table->file_name;
-    node->line_no   = table->line_no;
+    node->file_name = _ft_debug_file;
+    node->line_no   = _ft_debug_lineno;
 
     node->cur_blocks = 0;
     node->max_blocks = 0;
@@ -525,7 +538,7 @@
             "org=%s:%d new=%s:%d\n",
             node->address, node->size,
             FT_FILENAME( node->source->file_name ), node->source->line_no,
-            FT_FILENAME( table->file_name ), table->line_no );
+            FT_FILENAME( _ft_debug_file ), _ft_debug_lineno );
         }
       }
 
@@ -593,7 +606,7 @@
             "freeing memory block at %p more than once at (%s:%ld)\n"
             "block allocated at (%s:%ld) and released at (%s:%ld)",
             address,
-            FT_FILENAME( table->file_name ), table->line_no,
+            FT_FILENAME( _ft_debug_file ), _ft_debug_lineno,
             FT_FILENAME( node->source->file_name ), node->source->line_no,
             FT_FILENAME( node->free_file_name ), node->free_line_no );
 
@@ -611,8 +624,8 @@
           /* we simply invert the node's size to indicate that the node */
           /* was freed.                                                 */
           node->size           = -node->size;
-          node->free_file_name = table->file_name;
-          node->free_line_no   = table->line_no;
+          node->free_file_name = _ft_debug_file;
+          node->free_line_no   = _ft_debug_lineno;
         }
         else
         {
@@ -634,7 +647,7 @@
         ft_mem_debug_panic(
           "trying to free unknown block at %p in (%s:%ld)\n",
           address,
-          FT_FILENAME( table->file_name ), table->line_no );
+          FT_FILENAME( _ft_debug_file ), _ft_debug_lineno );
     }
   }
 
@@ -657,7 +670,7 @@
 
     /* return NULL if this allocation would overflow the maximum heap size */
     if ( table->bound_total                                             &&
-         table->alloc_current + (FT_ULong)size > table->alloc_total_max )
+         table->alloc_total_max - table->alloc_current > (FT_ULong)size )
       return NULL;
 
     block = (FT_Byte *)ft_mem_table_alloc( table, size );
@@ -666,8 +679,8 @@
 
     table->alloc_count++;
 
-    table->file_name = NULL;
-    table->line_no   = 0;
+    _ft_debug_file   = "<unknown>";
+    _ft_debug_lineno = 0;
 
     return (FT_Pointer)block;
   }
@@ -682,8 +695,8 @@
 
     if ( block == NULL )
       ft_mem_debug_panic( "trying to free NULL in (%s:%ld)",
-                          FT_FILENAME( table->file_name ),
-                          table->line_no );
+                          FT_FILENAME( _ft_debug_file ),
+                          _ft_debug_lineno );
 
     ft_mem_table_remove( table, (FT_Byte*)block );
 
@@ -692,8 +705,8 @@
 
     table->alloc_count--;
 
-    table->file_name = NULL;
-    table->line_no   = 0;
+    _ft_debug_file   = "<unknown>";
+    _ft_debug_lineno = 0;
   }
 
 
@@ -707,8 +720,8 @@
     FT_MemNode   node, *pnode;
     FT_Pointer   new_block;
 
-    const char*  file_name = FT_FILENAME( table->file_name );
-    FT_Long      line_no   = table->line_no;
+    const char*  file_name = FT_FILENAME( _ft_debug_file );
+    FT_Long      line_no   = _ft_debug_lineno;
 
 
     /* the following is valid according to ANSI C */

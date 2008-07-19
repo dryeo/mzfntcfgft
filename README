@@ -13,22 +13,21 @@ Move the whole directory containing this package where you want it
 installed and then run 
    make -s
    make clean
-This compiles all files, links them into mozftlib DLL and adapts the
+This compiles all files, links them into mzfntcfg.dll and adapts the
 installation to your directory tree. Then it removes the unnecessary
 object files.
 (If for whatever reason you want to recompile everything, do
-   make -s nuke all clean
+   make -s nuke all
+   make clean
 This comes in handy on GCC upgrades.)
 
-Now be sure to also adapt the FONTCONFIG and FREETYPE variables in
-your setmozenv.cmd, so that this package can be used by the Mozilla
-build process. In case your setmozenv.cmd does _not_ yet contain
-these variables add the following lines:
+Now be sure to also adapt the MZFNTCFGFT variable in your setmozenv.cmd,
+so that this package can be used by the Mozilla build process. In case
+your setmozenv.cmd does _not_ yet contain these variables add the
+following lines:
 
-  'set FREETYPE=<your_install_dir>'
-  'SET FREETYPE2='backtoforward(value('FREETYPE',,'OS2ENVIRONMENT'));
-  'set FONTCONFIG=<your_install_dir>'
-  'SET FONTCONFIG2='backtoforward(value('FONTCONFIG',,'OS2ENVIRONMENT'));
+  'set MZFTCFGFT=%ROOT%\mzftcfgft'
+  'set MZFTCFGFT2='backtoforward(value('MZFTCFGFT',,'OS2ENVIRONMENT'));
 
 
 - Cairo files
@@ -36,10 +35,11 @@ As the official cairo (and hence Mozilla) sources don't yet contain
 cairo for OS/2, you have to copy the files from one of the cairo_*
 subdirectories into your mozilla tree at
    mozilla\gfx\cairo\cairo\src
-When doing that be sure to overwrite the existing cairo-features.h.in.
-On the Mozilla trunk, you also need to apply a patch. For that, go to
-the directory and then execute
-   patch -p4 < cairo_h.diff
+When doing that be sure to overwrite the existing cairo-features.h.in
+and cairo.h files, otherwise OS/2 will not be picked up. In addition,
+you may need to adapt one of the patches from
+   https://bugzilla.mozilla.org/show_bug.cgi?id=342644
+to get Mozilla building with cairo.
 
 
 - Sources
@@ -47,9 +47,11 @@ The required source code is contained in this package. It is compiled
 from bits of the packages
    expat-1.95.8
    fontconfig-2.3.2-os2
-   freetype-2.1.10
-All these packages were drawn from Doodle's package
+   freetype-2.1.10       (plus freetype security fixes)
+These packages were drawn from Doodle's package
    ftp://ftp.netlabs.org/pub/Cairo/cairo-1.0.4-os2-src-with-dependencies.zip
+the freetype security fixes come from the Gentoo freetype package (file
+freetype-2.1.10-security_batch-r1.patch.bz2).
 
 
 - Copyright
@@ -65,4 +67,4 @@ cairo.COPYING-LGPL-2.1. The OS/2 cairo files are from Doodle's OS/2 port.
 If you want to complain please post to the group mozilla.dev.ports.os2
 on the newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 29Apr2006
+Peter Weilbacher <mozilla@Weilbacher.org>, 24Jul2006

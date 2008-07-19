@@ -514,18 +514,21 @@ FT_BEGIN_HEADER
           FT_SET_ERROR( FT_Stream_ReadFields( stream, fields, object ) )
 
 
-#define FT_FRAME_ENTER( size )                                 \
-          FT_SET_ERROR( FT_Stream_EnterFrame( stream, size ) )
+#define FT_FRAME_ENTER( size )                                       \
+          FT_SET_ERROR(                                              \
+            FT_DEBUG_INNER( FT_Stream_EnterFrame( stream, size ) ) )
 
 #define FT_FRAME_EXIT()                 \
-          FT_Stream_ExitFrame( stream )
+          FT_DEBUG_INNER( FT_Stream_ExitFrame( stream ) )
 
-#define FT_FRAME_EXTRACT( size, bytes )                                 \
-          FT_SET_ERROR( FT_Stream_ExtractFrame( stream, size,           \
-                                                (FT_Byte**)&(bytes) ) )
+#define FT_FRAME_EXTRACT( size, bytes )                                       \
+          FT_SET_ERROR(                                                       \
+            FT_DEBUG_INNER( FT_Stream_ExtractFrame( stream, size,             \
+                                                    (FT_Byte**)&(bytes) ) ) )
 
-#define FT_FRAME_RELEASE( bytes )                               \
-          FT_Stream_ReleaseFrame( stream, (FT_Byte**)&(bytes) )
+#define FT_FRAME_RELEASE( bytes )                                         \
+          FT_DEBUG_INNER( FT_Stream_ReleaseFrame( stream,                 \
+                                                  (FT_Byte**)&(bytes) ) )
 
 
 FT_END_HEADER

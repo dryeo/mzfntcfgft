@@ -341,9 +341,9 @@ static void _cairo_os2_surface_release_source_image (void                   *abs
 }
 
 static cairo_status_t _cairo_os2_surface_acquire_dest_image (void                    *abstract_surface,
-                                                             cairo_rectangle_int16_t *interest_rect,
+                                                             cairo_rectangle_t       *interest_rect,
                                                              cairo_image_surface_t  **image_out,
-                                                             cairo_rectangle_int16_t *image_rect,
+                                                             cairo_rectangle_t       *image_rect,
                                                              void                   **image_extra)
 {
   cairo_os2_surface_t *pOS2Surface;
@@ -373,11 +373,11 @@ static cairo_status_t _cairo_os2_surface_acquire_dest_image (void               
   return CAIRO_STATUS_SUCCESS;
 }
 
-static void _cairo_os2_surface_release_dest_image(void                    *abstract_surface,
-                                                  cairo_rectangle_int16_t *interest_rect,
-                                                  cairo_image_surface_t   *image,
-                                                  cairo_rectangle_int16_t *image_rect,
-                                                  void                    *image_extra)
+static void _cairo_os2_surface_release_dest_image(void                   *abstract_surface,
+                                                  cairo_rectangle_t      *interest_rect,
+                                                  cairo_image_surface_t  *image,
+                                                  cairo_rectangle_t      *image_rect,
+                                                  void                   *image_extra)
 {
   cairo_os2_surface_t *pOS2Surface;
   RECTL rclToBlit;
@@ -454,8 +454,8 @@ static void _cairo_os2_surface_release_dest_image(void                    *abstr
   DosReleaseMutexSem(pOS2Surface->hmtxUsePrivateFields);
 }
 
-static cairo_int_status_t _cairo_os2_surface_get_extents(void                    *abstract_surface,
-                                                         cairo_rectangle_int16_t *rectangle)
+static cairo_int_status_t _cairo_os2_surface_get_extents(void *abstract_surface,
+                                                         cairo_rectangle_t *rectangle)
 {
   cairo_os2_surface_t *pOS2Surface;
 
@@ -599,8 +599,7 @@ cairo_surface_t *cairo_os2_surface_create(HPS hpsClientWindow,
   }
 
   /* Initialize base surface */
-  _cairo_surface_init(&pOS2Surface->base, &cairo_os2_surface_backend,
-                       CAIRO_CONTENT_COLOR_ALPHA);
+  _cairo_surface_init(&pOS2Surface->base, &cairo_os2_surface_backend);
 
   /* All done! */
   return (cairo_surface_t *)pOS2Surface;
@@ -963,7 +962,6 @@ static cairo_status_t _cairo_os2_surface_mark_dirty_rectangle(void *surface,
 }
 
 static const cairo_surface_backend_t cairo_os2_surface_backend = {
-    CAIRO_SURFACE_TYPE_OS2,
     NULL, /* create_similar */
     _cairo_os2_surface_finish,
     _cairo_os2_surface_acquire_source_image,
@@ -979,16 +977,9 @@ static const cairo_surface_backend_t cairo_os2_surface_backend = {
     NULL, /* set_clip_region */
     NULL, /* intersect_clip_path */
     _cairo_os2_surface_get_extents,
-    NULL, /* old_show_glyphs */
+    NULL, /* show_glyphs */
+    NULL, /* fill_path */
     NULL, /* get_font_options */
     NULL, /* flush */
-    _cairo_os2_surface_mark_dirty_rectangle,
-    NULL, /* scaled_font_fini */
-    NULL, /* scaled_glyph_fini */
-    NULL, /* paint */
-    NULL, /* mask */
-    NULL, /* stroke */
-    NULL, /* fill */
-    NULL, /* show_glyphs */
-    NULL  /* snapshot */
+    _cairo_os2_surface_mark_dirty_rectangle
 };
