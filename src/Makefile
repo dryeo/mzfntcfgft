@@ -40,7 +40,6 @@ FONTCONFIG_CFLAGS = \
 # 	fcpat.c        \
 # 	fcstr.c        \
 # 	fcxml.c
-FONTCONFIG_DLLFLAGS = -l$(FREETYPE_NAME) -L../$(LIBDIR)
 FONTCONFIG_OBJS = \
 	fcatomic.o     \
 	fcblanks.o     \
@@ -135,16 +134,8 @@ CFLAGS += -I../$(INCLUDEDIR) $(EXPAT_CFLAGS) $(FONTCONFIG_CFLAGS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(EXPAT_FONTCONFIG_OUT): $(EXPAT_OBJS) $(FONTCONFIG_OBJS)
-	@echo "Link Expat and Fontconfig into $(EXPAT_FONTCONFIG_OUT)..."
-	@echo "LIBRARY $(EXPAT_FONTCONFIG_NAME) INITINSTANCE TERMINSTANCE" \
-	   > $(EXPAT_FONTCONFIG_NAME).def
-	@echo "DESCRIPTION '$(EXPAT_FONTCONFIG_NAME), a subset of Expat 1.95.8 and the Fontconfig 2.3.2 library combined'" \
-	   >> $(EXPAT_FONTCONFIG_NAME).def
-	cat exports.list >> $(EXPAT_FONTCONFIG_NAME).def
-
-	$(CC) $(DLLFLAGS) $(FONTCONFIG_DLLFLAGS) -o $@ \
-	      $(EXPAT_FONTCONFIG_NAME).def $^
-	emximp -o $(EXPAT_FONTCONFIG_NAME).lib $(EXPAT_FONTCONFIG_NAME).def
+	@echo "Create Expat and Fontconfig library ($(FREETYPE_OUT))..."
+	emxomfar rc $@ $^
 
 $(FREETYPE_OUT):	$(FREETYPE_OBJS)
 	@echo "Create FreeType library ($(FREETYPE_OUT))..."
@@ -165,9 +156,6 @@ $(FREETYPE_OUT):	$(FREETYPE_OBJS)
 
 clean:	
 	rm -f $(EXPAT_OBJS) $(FONTCONFIG_OBJS) $(FREETYPE_OBJS) \
-	      $(EXPAT_FONTCONFIG_NAME).def \
 	      $(EXPAT_FONTCONFIG_NAME).lib \
-	      $(EXPAT_FONTCONFIG_NAME).dll \
-	      $(EXPAT_FONTCONFIG_NAME).map \
 	      $(FREETYPE_OUT)
 

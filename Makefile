@@ -19,9 +19,7 @@ $(BINDIR)/freetype-config:	freetype-config.in
 $(LIBDIR)/$(EXPAT_FONTCONFIG_OUT):
 	$(MAKE) -C $(SRCDIR) $(EXPAT_FONTCONFIG_OUT)
 	cp -f $(SRCDIR)/$(EXPAT_FONTCONFIG_NAME).lib \
-	      $(SRCDIR)/$(EXPAT_FONTCONFIG_NAME).map \
 	   $(LIBDIR)
-	cp -f $(SRCDIR)/$(EXPAT_FONTCONFIG_NAME).dll $@
 
 
 .PHONY: clean nuke
@@ -33,8 +31,6 @@ clean:
 nuke:	clean
 	@echo "Nuke also all targets..."
 	rm -f $(LIBDIR)/$(EXPAT_FONTCONFIG_NAME).lib \
-	      $(LIBDIR)/$(EXPAT_FONTCONFIG_NAME).dll \
-	      $(LIBDIR)/$(EXPAT_FONTCONFIG_NAME).map \
 	      $(LIBDIR)/$(FREETYPE_OUT)              \
 	      $(BINDIR)/freetype-config
 
