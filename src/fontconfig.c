@@ -463,7 +463,6 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
 {
   FontDescriptionCache_p pFont, pBestMatch;
   int iBestMatchScore;
-  char achKey[512];
   int bWeightOk;
   int bSlantOk;
 
@@ -493,28 +492,25 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   {
     if ((p->family) && (stricmp(pFont->achFamilyName, p->family)==0))
     {
-      // local upper case style name for easy comparison
-      char* upperStyleName = strupr(strdup(pFont->achStyleName));
-
       // Family found, calculate score for it!
       if ( p->weight > FC_WEIGHT_MEDIUM )
       {
         // Looking for a BOLD font
-        bWeightOk = (strstr(upperStyleName, "BOLD")!=NULL);
+        bWeightOk = (stristr(pFont->achStyleName, "BOLD")!=NULL);
       } else
       {
         // Looking for a non-bold (normal) font
-        bWeightOk = (strstr(upperStyleName, "BOLD")==NULL);
+        bWeightOk = (stristr(pFont->achStyleName, "BOLD")==NULL);
       }
 
       if ( p->slant > FC_SLANT_ROMAN )
       {
         // Looking for an ITALIC font
-        bSlantOk = (strstr(upperStyleName, "ITALIC")!=NULL);
+        bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
       } else
       {
         // Looking for a non-italic font
-        bSlantOk = (strstr(upperStyleName, "ITALIC")==NULL);
+        bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL);
       }
 
       // Check if this score is better than the previous best one
@@ -527,15 +523,9 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
         if ((bWeightOk) && (bSlantOk))
         {
           // Found an exact match!
-
-          // Free the local upper case style name
-          free(upperStyleName);
           break;
         }
       }
-
-      // Free the local upper case style name
-      free(upperStyleName);
     }
     pFont = pFont->pNext;
   }
@@ -543,119 +533,75 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   if (pBestMatch)
     pFont = pBestMatch;
 
-  // again, if an exact match was not found, now try to find the family
-  // name by substring search
+  // Did not find a good one by family name match, search now with
+  // default font families! This includes the OS/2 typical fonts of
+  // Tms Rmn and Helv as well as Swiss
   if (!pFont)
   {
-    while (pFont)
-    {
-      if ((p->family) && (stristr(pFont->achFamilyName, p->family)))
-      {
-        // local upper case style name for easy comparison
-        char* upperStyleName = strupr(strdup(pFont->achStyleName));
+    // 64 seems to be the max font name length on OS/2 already, add some margin
+    char achKey[128] = "";
+    char *achKeySpace = NULL;
 
-        // Family found, calculate score for it!
-        if ( p->weight > FC_WEIGHT_MEDIUM )
-        {
-          // Looking for a BOLD font
-          bWeightOk = (strstr(upperStyleName, "BOLD")!=NULL);
-        } else
-        {
-          // Looking for a non-bold (normal) font
-          bWeightOk = (strstr(upperStyleName, "BOLD")==NULL);
-        }
-
-        if ( p->slant > FC_SLANT_ROMAN )
-        {
-          // Looking for an ITALIC font
-          bSlantOk = (strstr(upperStyleName, "ITALIC")!=NULL);
-        } else
-        {
-          // Looking for a non-italic font
-          bSlantOk = (strstr(upperStyleName, "ITALIC")==NULL);
-        }
-
-        // Check if this score is better than the previous best one
-        if (iBestMatchScore < bWeightOk*2 + bSlantOk)
-        {
-          pBestMatch = pFont;
-          iBestMatchScore = bWeightOk*2 + bSlantOk;
-
-          // Check if it's a perfect match!
-          if ((bWeightOk) && (bSlantOk))
-          {
-            // Found an exact match!
-
-            // Free the local upper case style name
-            free(upperStyleName);
-            break;
-          }
-        }
-
-        // Free the local upper case style name
-        free(upperStyleName);
-      }
-      pFont = pFont->pNext;
-    }
-  }
-  // Use the one if we've found something
-  if (pBestMatch)
-    pFont = pBestMatch;
-
-  if (!pFont)
-  {
-    // Did not find a good one by family name match,
-    // search now with default font families!
-    if ( p->spacing == FC_MONO )
+    if ( p->spacing == FC_MONO || ((p->family) && (stricmp("MONOSPACE", p->family)==0)))
     {
       strncpy(achKey, DEFAULT_MONOSPACED_FONT, sizeof(achKey));
     }
-    else
+    else if (
+        (p->family) &&
+        ((stricmp( p->family, "SWISS" ) == 0 ) ||
+         (stricmp( p->family, "HELV" ) == 0 ) ||
+         (stricmp( p->family, "SANS-SERIF" ) == 0 ) ||
+         (stricmp( p->family, "SANS" ) == 0 )
+        )
+       )
     {
-      if (
-          (p->family) &&
-          ((stristr( p->family, "SWISS" ) != NULL ) ||
-           (stristr( p->family, "SANS" ) != NULL )
-          )
-         )
-      {
-        strncpy(achKey, DEFAULT_SANSSERIF_FONT, sizeof(achKey));
-      }
-      else
-      {
-        strncpy(achKey, DEFAULT_SERIF_FONT, sizeof(achKey));
-      }
+      strncpy(achKey, DEFAULT_SANSSERIF_FONT, sizeof(achKey));
+    }
+    else if (
+        (p->family) &&
+        ((stricmp( p->family, "SERIF" ) == 0 ) ||
+         (stricmp( p->family, "TMS RMN" ) == 0 ) ||
+         (stricmp( p->family, DEFAULT_SERIF_FONT ) == 0 )
+        )
+       )
+    {
+      // this of course includes the case of "Tms Rmn"
+      strncpy(achKey, DEFAULT_SERIF_FONT, sizeof(achKey));
+      // we want to match Times New Roman which has an additional trailing
+      // space in the name...
+      achKeySpace = strdup(achKey);
+      strcat(achKeySpace, " ");
     }
 
     pFont = pFontDescriptionCacheHead;
     pBestMatch = NULL;
     iBestMatchScore = -1;
-    while (pFont)
+    // only search font list, if we set a key to search for
+    while (achKey && achKey[0] && pFont)
     {
-      if (stristr(pFont->achFamilyName, achKey))
+      if (stricmp(pFont->achFamilyName, achKey) == 0 ||
+          (achKeySpace && stricmp(pFont->achFamilyName, achKeySpace) == 0)
+         )
       {
-        // local upper case style name for easy comparison
-        char* upperStyleName = strupr(strdup(pFont->achStyleName));
-
         // Family found, calculate score for it!
         if ( p->weight > FC_WEIGHT_MEDIUM )
         {
           // Looking for a BOLD font
-          bWeightOk = (strstr(upperStyleName, "BOLD")!=NULL);
+          bWeightOk = (stristr(pFont->achStyleName, "BOLD")!=NULL);
         } else
         {
           // Looking for a non-bold (normal) font
-          bWeightOk = (strstr(upperStyleName, "BOLD")==NULL);
+          bWeightOk = (stristr(pFont->achStyleName, "BOLD")==NULL);
         }
 
         if ( p->slant > FC_SLANT_ROMAN )
         {
           // Looking for an ITALIC font
-          bSlantOk = (strstr(upperStyleName, "ITALIC")!=NULL);
+          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
         } else
         {
           // Looking for a non-italic font
-          bSlantOk = (strstr(upperStyleName, "ITALIC")==NULL);
+          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL);
         }
 
         // Check if this score is better than the previous best one
@@ -668,22 +614,72 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
           if ((bWeightOk) && (bSlantOk))
           {
             // Fount an exact match!
-
-            // Free the local upper case style name
-            free(upperStyleName);
             break;
           }
         }
-
-        // Free the local upper case style name
-        free(upperStyleName);
       }
       pFont = pFont->pNext;
     }
-    // Use the one if we've found something
-    if (pBestMatch)
-      pFont = pBestMatch;
+    if (achKeySpace)
+      free(achKeySpace);
   }
+  // Use the one if we've found something
+  if (pBestMatch)
+    pFont = pBestMatch;
+
+  // again, if an exact match was not found, now try to find the family
+  // name by substring search
+  if (!pBestMatch)
+  {
+    pFont = pFontDescriptionCacheHead;
+    pBestMatch = NULL;
+    iBestMatchScore = -1;
+    while (pFont)
+    {
+      if ((p->family) && (stristr(pFont->achFamilyName, p->family) != NULL))
+      {
+        // Family found, calculate score for it!
+        if ( p->weight > FC_WEIGHT_MEDIUM )
+        {
+          // Looking for a BOLD font
+          bWeightOk = (stristr(pFont->achStyleName, "BOLD")!=NULL);
+        } else
+        {
+          // Looking for a non-bold (normal) font
+          bWeightOk = (stristr(pFont->achStyleName, "BOLD")==NULL);
+        }
+
+        if ( p->slant > FC_SLANT_ROMAN )
+        {
+          // Looking for an ITALIC font
+          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+        } else
+        {
+          // Looking for a non-italic font
+          bSlantOk = (stristr(pFont->achStyleName, "ITALIC")==NULL);
+        }
+
+        // Check if this score is better than the previous best one
+        if (iBestMatchScore < bWeightOk*2 + bSlantOk)
+        {
+          pBestMatch = pFont;
+          iBestMatchScore = bWeightOk*2 + bSlantOk;
+
+          // Check if it's a perfect match!
+          if ((bWeightOk) && (bSlantOk))
+          {
+            // Found an exact match!
+            break;
+          }
+        }
+      }
+      pFont = pFont->pNext;
+    }
+  }
+  // Use the one if we've found something
+  if (pBestMatch)
+    pFont = pBestMatch;
+
 #ifdef MATCH_DEBUG
   // print the font representing the best match
   printf("best match\n  %s,%s\n", pFont->achFamilyName, pFont->achStyleName);
