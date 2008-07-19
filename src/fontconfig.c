@@ -49,6 +49,9 @@ struct _FcPattern
     int weight;
     double pixelsize;
     int spacing;
+    FcBool hinting;
+    FcBool antialias;
+    FcBool embolden;
 
     FontDescriptionCache_p pFontDesc;
 };
@@ -172,9 +175,30 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
     pFontDescriptionCacheLast = pFontDescriptionCacheHead = pNewFontCacheEntry;
   }
   // Then uppercase the names internally
-  strupr(pNewFontCacheEntry->achFamilyName);
-  strupr(pNewFontCacheEntry->achStyleName);
+  // XXX no, don't do that, otherwise they all appear uppercased in Mozilla!!!
+  //strupr(pNewFontCacheEntry->achFamilyName);
+  //strupr(pNewFontCacheEntry->achStyleName);
 
+}
+
+// we need to do case insensitive comparison a lot
+char *stristr(const char *str1, const char *str2)
+{
+  char *upper1, *upper2, *retval;
+
+  // as strupr does in place modification, copy the strings first
+  upper1 = strdup(str1);
+  upper2 = strdup(str2);
+  strupr(upper1);
+  strupr(upper2);
+
+  // now call the original strstr on the uppercase strings
+  retval = strstr(upper1, upper2);
+
+  // and clean up before returning
+  free(upper1);
+  free(upper2);
+  return retval;
 }
 
 fcExport FcBool FcInit()
@@ -235,6 +259,8 @@ fcExport FcPattern *FcPatternCreate (void)
   {
     memset(pResult, 0, sizeof(FcPattern));
   }
+  pResult->hinting = FcTrue; // default to hinting on
+  pResult->antialias = FcTrue; // default to antialias on
   return pResult;
 }
 
@@ -266,6 +292,8 @@ fcExport void FcDefaultSubstitute (FcPattern *pattern)
       pattern->spacing = FC_PROPORTIONAL;
     if (pattern->pixelsize==0)
       pattern->pixelsize = 12.0 * 1.0 * 75.0 / 72.0; // font size * scale * dpi / 72.0;
+    pattern->hinting = FcTrue; // default to hinting on
+    pattern->antialias = FcTrue; // antialias by default
   }
 }
 
@@ -323,12 +351,17 @@ fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int 
 {
   if (strcmp(object, FC_HINTING)==0)
   {
-    *b = FcTrue;
+    *b = p->hinting;
     return FcResultMatch;
   }
   if (strcmp(object, FC_ANTIALIAS)==0)
   {
-    *b = FcTrue;
+    *b = p->antialias;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_EMBOLDEN)==0)
+  {
+    *b = p->embolden;
     return FcResultMatch;
   }
   return FcResultNoMatch;
@@ -393,7 +426,6 @@ fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcCh
       free(p->family); p->family = NULL;
     }
     p->family = strdup(s);
-    strupr(p->family);
     return FcTrue;
   }
 
@@ -402,13 +434,28 @@ fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcCh
 
 fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 {
-  // STUB
-  return FcTrue;
+  if (strcmp(object, FC_HINTING)==0)
+  {
+    p->hinting = b;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_ANTIALIAS)==0)
+  {
+    p->antialias = b;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_EMBOLDEN)==0)
+  {
+    p->embolden = b;
+    return FcResultMatch;
+  }
+
+  return FcResultNoMatch;
 }
 
-#define DEFAULT_SERIF_FONT          "TIMES NEW ROMAN"
-#define DEFAULT_SANSSERIF_FONT      "HELVETICA"
-#define DEFAULT_MONOSPACED_FONT     "COURIER"
+#define DEFAULT_SERIF_FONT          "Times New Roman"
+#define DEFAULT_SANSSERIF_FONT      "Helvetica"
+#define DEFAULT_MONOSPACED_FONT     "Courier"
 
 fcExport FcPattern *FcFontMatch (FcConfig	*config,
                                  FcPattern	*p,
@@ -444,27 +491,30 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   // first try to match the font using an exact match of the family name
   while (pFont)
   {
-    if ((p->family) && (strcmp(pFont->achFamilyName, p->family)==0))
+    if ((p->family) && (stricmp(pFont->achFamilyName, p->family)==0))
     {
+      // local upper case style name for easy comparison
+      char* upperStyleName = strupr(strdup(pFont->achStyleName));
+
       // Family found, calculate score for it!
       if ( p->weight > FC_WEIGHT_MEDIUM )
       {
         // Looking for a BOLD font
-        bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
+        bWeightOk = (strstr(upperStyleName, "BOLD")!=NULL);
       } else
       {
         // Looking for a non-bold (normal) font
-        bWeightOk = (strstr(pFont->achStyleName, "BOLD")==NULL);
+        bWeightOk = (strstr(upperStyleName, "BOLD")==NULL);
       }
 
       if ( p->slant > FC_SLANT_ROMAN )
       {
         // Looking for an ITALIC font
-        bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
+        bSlantOk = (strstr(upperStyleName, "ITALIC")!=NULL);
       } else
       {
         // Looking for a non-italic font
-        bSlantOk = (strstr(pFont->achStyleName, "ITALIC")==NULL);
+        bSlantOk = (strstr(upperStyleName, "ITALIC")==NULL);
       }
 
       // Check if this score is better than the previous best one
@@ -476,10 +526,16 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
         // Check if it's a perfect match!
         if ((bWeightOk) && (bSlantOk))
         {
-          // Fount an exact match!
+          // Found an exact match!
+
+          // Free the local upper case style name
+          free(upperStyleName);
           break;
         }
       }
+
+      // Free the local upper case style name
+      free(upperStyleName);
     }
     pFont = pFont->pNext;
   }
@@ -493,27 +549,30 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   {
     while (pFont)
     {
-      if ((p->family) && (strstr(pFont->achFamilyName, p->family)))
+      if ((p->family) && (stristr(pFont->achFamilyName, p->family)))
       {
+        // local upper case style name for easy comparison
+        char* upperStyleName = strupr(strdup(pFont->achStyleName));
+
         // Family found, calculate score for it!
         if ( p->weight > FC_WEIGHT_MEDIUM )
         {
           // Looking for a BOLD font
-          bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
+          bWeightOk = (strstr(upperStyleName, "BOLD")!=NULL);
         } else
         {
           // Looking for a non-bold (normal) font
-          bWeightOk = (strstr(pFont->achStyleName, "BOLD")==NULL);
+          bWeightOk = (strstr(upperStyleName, "BOLD")==NULL);
         }
 
         if ( p->slant > FC_SLANT_ROMAN )
         {
           // Looking for an ITALIC font
-          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
+          bSlantOk = (strstr(upperStyleName, "ITALIC")!=NULL);
         } else
         {
           // Looking for a non-italic font
-          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")==NULL);
+          bSlantOk = (strstr(upperStyleName, "ITALIC")==NULL);
         }
 
         // Check if this score is better than the previous best one
@@ -525,10 +584,16 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
           // Check if it's a perfect match!
           if ((bWeightOk) && (bSlantOk))
           {
-            // Fount an exact match!
+            // Found an exact match!
+
+            // Free the local upper case style name
+            free(upperStyleName);
             break;
           }
         }
+
+        // Free the local upper case style name
+        free(upperStyleName);
       }
       pFont = pFont->pNext;
     }
@@ -549,8 +614,8 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
     {
       if (
           (p->family) &&
-          ((strstr( p->family, "SWISS" ) != NULL ) ||
-           (strstr( p->family, "SANS" ) != NULL )
+          ((stristr( p->family, "SWISS" ) != NULL ) ||
+           (stristr( p->family, "SANS" ) != NULL )
           )
          )
       {
@@ -567,27 +632,30 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
     iBestMatchScore = -1;
     while (pFont)
     {
-      if (strstr(pFont->achFamilyName, achKey))
+      if (stristr(pFont->achFamilyName, achKey))
       {
+        // local upper case style name for easy comparison
+        char* upperStyleName = strupr(strdup(pFont->achStyleName));
+
         // Family found, calculate score for it!
         if ( p->weight > FC_WEIGHT_MEDIUM )
         {
           // Looking for a BOLD font
-          bWeightOk = (strstr(pFont->achStyleName, "BOLD")!=NULL);
+          bWeightOk = (strstr(upperStyleName, "BOLD")!=NULL);
         } else
         {
           // Looking for a non-bold (normal) font
-          bWeightOk = (strstr(pFont->achStyleName, "BOLD")==NULL);
+          bWeightOk = (strstr(upperStyleName, "BOLD")==NULL);
         }
 
         if ( p->slant > FC_SLANT_ROMAN )
         {
           // Looking for an ITALIC font
-          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")!=NULL);
+          bSlantOk = (strstr(upperStyleName, "ITALIC")!=NULL);
         } else
         {
           // Looking for a non-italic font
-          bSlantOk = (strstr(pFont->achStyleName, "ITALIC")==NULL);
+          bSlantOk = (strstr(upperStyleName, "ITALIC")==NULL);
         }
 
         // Check if this score is better than the previous best one
@@ -600,9 +668,15 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
           if ((bWeightOk) && (bSlantOk))
           {
             // Fount an exact match!
+
+            // Free the local upper case style name
+            free(upperStyleName);
             break;
           }
         }
+
+        // Free the local upper case style name
+        free(upperStyleName);
       }
       pFont = pFont->pNext;
     }
@@ -618,12 +692,28 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
   if (pFont)
   {
     // If a font is found, then return with it!
-    FcPattern *pResult = malloc(sizeof(FcPattern));
+    FcPattern *pResult = FcPatternCreate();
     if (pResult)
     {
-      memcpy(pResult, p, sizeof(FcPattern));
+      // in the output pattern set the three properties we use to select
       if (pFont->achFamilyName)
         pResult->family = strdup(pFont->achFamilyName);
+
+      if (stristr(pResult->family, "BOLD")!=NULL)
+        pResult->weight = FC_WEIGHT_BOLD;
+      else
+        pResult->weight = FC_WEIGHT_REGULAR;
+
+      if (stristr(pResult->family, "ITALIC")!=NULL)
+        pResult->slant = FC_SLANT_ITALIC;
+      else
+        pResult->slant = FC_SLANT_ROMAN;
+
+      // If we found the font name of generic family the spacing should
+      // be the same as the input, and we don't select on available
+      // sizes, so copy that, too.
+      pResult->spacing = p->spacing;
+      pResult->pixelsize = p->pixelsize;
 
       pResult->pFontDesc = pFont;
     }
@@ -746,7 +836,7 @@ fcExport FcFontSet *FcFontList(FcConfig *config, FcPattern *p, FcObjectSet *os)
     while (pFont)
     {
       if ((p->family==NULL) ||
-          (strstr(pFont->achFamilyName, p->family)))
+          (stristr(pFont->achFamilyName, p->family)))
       {
         FcPattern *newPattern = FcPatternCreate();
         newPattern->pFontDesc = pFont;

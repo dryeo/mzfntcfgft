@@ -637,6 +637,7 @@
    *   A macro used in #include statements to name the file containing the
    *   FreeType 2 API which performs artificial obliquing and emboldening.
    */
+#define HAVE_FT_GLYPHSLOT_EMBOLDEN 1 /* PmW */
 #define FT_SYNTHESIS_H  <freetype/ftsynth.h>
 
 

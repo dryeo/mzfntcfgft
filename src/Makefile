@@ -17,6 +17,7 @@ FREETYPE_OBJS = \
 	base/ftbbox.o       \
 	base/ftmm.o         \
 	base/fttype1.o      \
+	base/ftsynth.o      \
 	autofit/autofit.o   \
 	sfnt/sfnt.o         \
 	psnames/psnames.o   \
@@ -30,17 +31,6 @@ FREETYPE_OBJS = \
 	type42/type42.o     \
 	pshinter/pshinter.o \
 	otvalid/otvalid.o
-# unused objects:
-#	base/ftbdf.o
-#	bdf/bdf.o
-#	pcf/pcf.o
-#	gzip/ftgzip.o
-#	lzw/ftlzw.o
-#	base/ftwinfnt.o
-#	winfonts/winfnt.o
-#	base/ftpfr.o
-#	pfr/pfr.o
-#	cff/cff.o
 FREETYPE_CFLAGS = -DFT2_BUILD_LIBRARY=1
 
 CFLAGS += -I../$(INCLUDEDIR) $(FONTCONFIG_CFLAGS) $(FREETYPE_CFLAGS)

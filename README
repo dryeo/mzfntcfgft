@@ -31,28 +31,34 @@ following lines:
 - Sources
 The required source code is contained in this package. It is compiled from bits
 of the packages
-   fontconfig           (the Netlabs version by ErOs2 and Doodle)
+   fontconfig           (the Netlabs version by ErOs2 and Doodle, a bit 
+                        enhanced by me in collaboration with Doodle)
    fontconfig-2.3.2-os2 (only the header files of the original Fontconfig package)
 Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
-   ft234.zip            (from http://sourceforge.net/project/showfiles.php?group_id=3157&package_id=3121)
+   ft235.zip            (from http://sourceforge.net/project/showfiles.php?group_id=3157&package_id=3121)
 Differences from the default configuration of FreeType (in the header files in
 include\freetype\config are marked with PmW.
 
 
-- Using the DLL
-If you built a Mozilla application with SVG support, you will not be able to
-start it until you place mzfntcfg.dll into the LIBPATH or the program
-directory. If you want to ship a program linked against this DLL, the best will
-be to copy both mzfntcfg.COPYING and mzfntcfg.dll into the program directory in
-the package.
+- Using the library
+If you built a Mozilla application with SVG support or if you compile a current
+trunk build, the above configuration will automatically link this library
+statically into one of the DLLs or the static EXE (depending on the build
+configuration).
 
 
 - Copyright
 See mzfntcfg.COPYING for copyright information. That file contains the required
 copyright notes from both base packages.
+(If you want to ship a program linked against this library, you should not
+forget to package mzfntcfg.COPYING, too, unless you built the program from
+current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20071125  - Upgrade to FT 2.3.5
+          - Add a few features and fix a few bugs of the OS/2 Fontconfig
+            implementation
 20070528  - Change from DLL and DLL import library to static import library
           + Fix a small mistake when returning the matched font name
 20070518  - Upgrade to FT 2.3.4 and switch from standard FC to Netlabs
@@ -63,4 +69,4 @@ copyright notes from both base packages.
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 28May2007
+Peter Weilbacher <mozilla@Weilbacher.org>, 25Nov2007
