@@ -980,6 +980,23 @@ fcExport FcFontSet *FcFontList(FcConfig *config, FcPattern *p, FcObjectSet *os)
 
   FcFontSet *result = FcFontSetCreate();
 
+  if (!p)
+    return result;
+
+  // same logic as in FcFontMatch
+  FcBool wantsMono = p->spacing == FC_MONO || ((p->family) && (stricmp("MONOSPACE", p->family)==0));
+  FcBool wantsSans = ((p->family) &&
+                      ((stricmp( p->family, "SWISS" ) == 0 ) ||
+                       (stricmp( p->family, "HELV" ) == 0 ) ||
+                       (stricmp( p->family, "SANS-SERIF" ) == 0 ) ||
+                       (stricmp( p->family, "SANS" ) == 0 )
+                      ));
+  FcBool wantsSerif = ((p->family) &&
+                       ((stricmp( p->family, "SERIF" ) == 0 ) ||
+                        (stricmp( p->family, "TMS RMN" ) == 0 ) ||
+                        (stricmp( p->family, DEFAULT_SERIF_FONT ) == 0 )
+                       ));
+
   if (result)
   {
     FontDescriptionCache_p pFont;
@@ -995,6 +1012,20 @@ fcExport FcFontSet *FcFontList(FcConfig *config, FcPattern *p, FcObjectSet *os)
 
         FcFontSetAdd(result, newPattern);
       }
+      else if ((wantsMono && stricmp(pFont->achFamilyName, DEFAULT_MONOSPACED_FONT)==0) ||
+               (wantsSans && stricmp(pFont->achFamilyName, DEFAULT_SANSSERIF_FONT)==0) ||
+               (wantsSerif && (stricmp(pFont->achFamilyName, DEFAULT_SERIF_FONT)==0 ||
+                               stricmp(pFont->achFamilyName, DEFAULT_SERIF_FONT" ")==0))
+              )
+      {
+        FcPattern *newPattern = FcPatternCreate();
+        newPattern->pFontDesc = pFont;
+        FcFontSetAdd(result, newPattern);
+        // here, we were obviously only searching for one
+        // specific (default) font, so we can return early
+        return result;
+      }
+
       pFont = pFont->pNext;
     }
   }

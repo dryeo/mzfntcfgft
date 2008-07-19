@@ -35,9 +35,8 @@ of the packages
                         me in collaboration with Doodle)
    fontconfig-2.3.2-os2 (only the header files of the original Fontconfig package)
 Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
-   ft235.zip            (from http://sourceforge.net/project/showfiles.php?group_id=3157&package_id=3121)
-Differences from the default configuration of FreeType (in the header files in
-include\freetype\config are marked with PmW.
+   freetype-2.3.6.tar.bz2 (from http://sourceforge.net/project/showfiles.php?group_id=3157&package_id=3121)
+Differences from the default sources of FreeType are marked with "PmW".
 
 
 - Using the library
@@ -56,6 +55,12 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20080615  - update to FreeType 2.3.6
+          + remove unused Type42 driver from FreeType
+          - improve emboldening
+          - don't use preferred font family and font style to be in line with
+            OS/2 font handling
+          - improve FcFontList()
 20080315  - Compile FT stroking code, too
           - Implement FcPatternEqual()
 20080307  Lots of improvements to the FontConfig port with help from Doodle
@@ -79,4 +84,4 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 15Mar2008
+Peter Weilbacher <mozilla@Weilbacher.org>, 2008-06-15

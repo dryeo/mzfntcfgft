@@ -474,11 +474,13 @@
                         FT_Pos             yOffset )
   {
     FT_UShort   n;
-    FT_Vector*  vec = outline->points;
+    FT_Vector*  vec;
 
 
     if ( !outline )
       return;
+
+    vec = outline->points;
 
     for ( n = 0; n < outline->n_points; n++ )
     {
@@ -626,13 +628,13 @@
   }
 
 
-  /* documentation is in ftoutln.h */
+  /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( void )
   FT_Vector_Transform( FT_Vector*        vector,
                        const FT_Matrix*  matrix )
   {
-    FT_Pos xz, yz;
+    FT_Pos  xz, yz;
 
 
     if ( !vector || !matrix )
@@ -917,7 +919,8 @@
         }
 
         outline->points[n].x = v_cur.x + strength + in.x;
-        outline->points[n].y = v_cur.y + strength + in.y;
+        /* PmW outline->points[n].y = v_cur.y + strength + in.y; */
+        outline->points[n].y = v_cur.y; /* PmW don't shift vertically! */
 
         v_prev = v_cur;
         v_cur  = v_next;

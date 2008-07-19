@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  t42types.h                                                             */
+/*  svcid.h                                                                */
 /*                                                                         */
-/*    Type 42 font data types (specification only).                        */
+/*    The FreeType CID font services (specification).                      */
 /*                                                                         */
-/*  Copyright 2002, 2003, 2006 by Roberto Alameda.                         */
+/*  Copyright 2007 by Derek Clegg.                                         */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
 /*  modified, and distributed under the terms of the FreeType project      */
@@ -15,40 +15,35 @@
 /***************************************************************************/
 
 
-#ifndef __T42TYPES_H__
-#define __T42TYPES_H__
+#ifndef __SVCID_H__
+#define __SVCID_H__
 
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_TYPE1_TABLES_H
-#include FT_INTERNAL_TYPE1_TYPES_H
-#include FT_INTERNAL_POSTSCRIPT_HINTS_H
+#include FT_INTERNAL_SERVICE_H
 
 
 FT_BEGIN_HEADER
 
 
-  typedef struct  T42_FaceRec_
-  {
-    FT_FaceRec      root;
-    T1_FontRec      type1;
-    const void*     psnames;
-    const void*     psaux;
-    const void*     afm_data;
-    FT_Byte*        ttf_data;
-    FT_ULong        ttf_size;
-    FT_Face         ttf_face;
-    FT_CharMapRec   charmaprecs[2];
-    FT_CharMap      charmaps[2];
-    PS_UnicodesRec  unicode_map;
+#define FT_SERVICE_ID_CID  "CID"
 
-  } T42_FaceRec, *T42_Face;
+  typedef FT_Error
+  (*FT_CID_GetRegistryOrderingSupplementFunc)( FT_Face       face,
+                                               const char*  *registry,
+                                               const char*  *ordering,
+                                               FT_Int       *supplement );
+
+  FT_DEFINE_SERVICE( CID )
+  {
+    FT_CID_GetRegistryOrderingSupplementFunc  get_ros;
+  };
+
+  /* */
 
 
 FT_END_HEADER
 
-#endif /* __T1TYPES_H__ */
+
+#endif /* __SVCID_H__ */
 
 
 /* END */

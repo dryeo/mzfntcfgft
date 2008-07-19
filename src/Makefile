@@ -29,7 +29,6 @@ FREETYPE_OBJS = \
 	raster/raster.o     \
 	smooth/smooth.o     \
 	base/ftbitmap.o     \
-	type42/type42.o     \
 	pshinter/pshinter.o \
 	otvalid/otvalid.o
 FREETYPE_CFLAGS = -DFT2_BUILD_LIBRARY=1

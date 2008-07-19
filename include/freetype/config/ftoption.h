@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    User-selectable configuration macros (specification only).           */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007 by             */
+/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 by       */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -436,6 +436,7 @@ FT_BEGIN_HEADER
 #define TT_CONFIG_CMAP_FORMAT_8
 #define TT_CONFIG_CMAP_FORMAT_10
 #define TT_CONFIG_CMAP_FORMAT_12
+#define TT_CONFIG_CMAP_FORMAT_14
 
 
   /*************************************************************************/
@@ -445,118 +446,14 @@ FT_BEGIN_HEADER
   /****                                                                 ****/
   /*************************************************************************/
   /*************************************************************************/
+#define TT_CONFIG_OPTION_BYTECODE_INTERPRETER
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Define TT_CONFIG_OPTION_BYTECODE_INTERPRETER if you want to compile   */
-  /* a bytecode interpreter in the TrueType driver.  Note that there are   */
-  /* important patent issues related to the use of the interpreter.        */
-  /*                                                                       */
-  /* By undefining this, you will only compile the code necessary to load  */
-  /* TrueType glyphs without hinting.                                      */
-  /*                                                                       */
-  /*   Do not #undef this macro here, since the build system might         */
-  /*   define it for certain configurations only.                          */
-  /*                                                                       */
-/* #define TT_CONFIG_OPTION_BYTECODE_INTERPRETER */
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* If you define TT_CONFIG_OPTION_UNPATENTED_HINTING, a special version  */
-  /* of the TrueType bytecode interpreter is used that doesn't implement   */
-  /* any of the patented opcodes and algorithms.  Note that the            */
-  /* the TT_CONFIG_OPTION_UNPATENTED_HINTING macro is *ignored* if you     */
-  /* define TT_CONFIG_OPTION_BYTECODE_INTERPRETER; with other words,       */
-  /* either define TT_CONFIG_OPTION_BYTECODE_INTERPRETER or                */
-  /* TT_CONFIG_OPTION_UNPATENTED_HINTING but not both at the same time.    */
-  /*                                                                       */
-  /* This macro is only useful for a small number of font files (mostly    */
-  /* for Asian scripts) that require bytecode interpretation to properly   */
-  /* load glyphs.  For all other fonts, this produces unpleasant results,  */
-  /* thus the unpatented interpreter is never used to load glyphs from     */
-  /* TrueType fonts unless one of the following two options is used.       */
-  /*                                                                       */
-  /*   - The unpatented interpreter is explicitly activated by the user    */
-  /*     through the FT_PARAM_TAG_UNPATENTED_HINTING parameter tag         */
-  /*     when opening the FT_Face.                                         */
-  /*                                                                       */
-  /*   - FreeType detects that the FT_Face corresponds to one of the       */
-  /*     `trick' fonts (e.g., `Mingliu') it knows about.  The font engine  */
-  /*     contains a hard-coded list of font names and other matching       */
-  /*     parameters (see function `tt_face_init' in file                   */
-  /*     `src/truetype/ttobjs.c').                                         */
-  /*                                                                       */
-  /* Here a sample code snippet for using FT_PARAM_TAG_UNPATENTED_HINTING. */
-  /*                                                                       */
-  /*   {                                                                   */
-  /*     FT_Parameter  parameter;                                          */
-  /*     FT_Open_Args  open_args;                                          */
-  /*                                                                       */
-  /*                                                                       */
-  /*     parameter.tag = FT_PARAM_TAG_UNPATENTED_HINTING;                  */
-  /*                                                                       */
-  /*     open_args.flags      = FT_OPEN_PATHNAME | FT_OPEN_PARAMS;         */
-  /*     open_args.pathname   = my_font_pathname;                          */
-  /*     open_args.num_params = 1;                                         */
-  /*     open_args.params     = &parameter;                                */
-  /*                                                                       */
-  /*     error = FT_Open_Face( library, &open_args, index, &face );        */
-  /*     ...                                                               */
-  /*   }                                                                   */
-  /*                                                                       */
 #define TT_CONFIG_OPTION_UNPATENTED_HINTING
 
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Define TT_CONFIG_OPTION_INTERPRETER_SWITCH to compile the TrueType    */
-  /* bytecode interpreter with a huge switch statement, rather than a call */
-  /* table.  This results in smaller and faster code for a number of       */
-  /* architectures.                                                        */
-  /*                                                                       */
-  /* Note however that on some compiler/processor combinations, undefining */
-  /* this macro will generate faster, though larger, code.                 */
-  /*                                                                       */
 #define TT_CONFIG_OPTION_INTERPRETER_SWITCH
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Define TT_CONFIG_OPTION_COMPONENT_OFFSET_SCALED to compile the        */
-  /* TrueType glyph loader to use Apple's definition of how to handle      */
-  /* component offsets in composite glyphs.                                */
-  /*                                                                       */
-  /* Apple and MS disagree on the default behavior of component offsets    */
-  /* in composites.  Apple says that they should be scaled by the scaling  */
-  /* factors in the transformation matrix (roughly, it's more complex)     */
-  /* while MS says they should not.  OpenType defines two bits in the      */
-  /* composite flags array which can be used to disambiguate, but old      */
-  /* fonts will not have them.                                             */
-  /*                                                                       */
-  /*   http://partners.adobe.com/asn/developer/opentype/glyf.html          */
-  /*   http://fonts.apple.com/TTRefMan/RM06/Chap6glyf.html                 */
-  /*                                                                       */
 #undef TT_CONFIG_OPTION_COMPONENT_OFFSET_SCALED
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Define TT_CONFIG_OPTION_GX_VAR_SUPPORT if you want to include         */
-  /* support for Apple's distortable font technology (fvar, gvar, cvar,    */
-  /* and avar tables).  This has many similarities to Type 1 Multiple      */
-  /* Masters support.                                                      */
-  /*                                                                       */
 #define TT_CONFIG_OPTION_GX_VAR_SUPPORT
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* Define TT_CONFIG_OPTION_BDF if you want to include support for        */
-  /* an embedded `BDF ' table within SFNT-based bitmap formats.            */
-  /*                                                                       */
 #define TT_CONFIG_OPTION_BDF
-
 
   /*************************************************************************/
   /*************************************************************************/
@@ -624,7 +521,8 @@ FT_BEGIN_HEADER
 
   /*************************************************************************/
   /*                                                                       */
-  /* Compile autofit module with CJK script support.                       */
+  /* Compile autofit module with CJK (Chinese, Japanese, Korean) script    */
+  /* support.                                                              */
   /*                                                                       */
 #define AF_CONFIG_OPTION_CJK
 

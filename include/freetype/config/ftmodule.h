@@ -16,7 +16,7 @@ FT_USE_MODULE(t1_driver_class)
 /* PmW FT_USE_MODULE(cff_driver_class) */
 FT_USE_MODULE(t1cid_driver_class)
 /* PmW FT_USE_MODULE(pfr_driver_class) */
-FT_USE_MODULE(t42_driver_class)
+/* PmW FT_USE_MODULE(t42_driver_class) */
 /* PmW FT_USE_MODULE(winfnt_driver_class) */
 /* PmW FT_USE_MODULE(pcf_driver_class) */
 FT_USE_MODULE(psaux_module_class)
