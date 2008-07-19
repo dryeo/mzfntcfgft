@@ -1,0 +1,8 @@
+# use glob syntax.
+syntax: glob
+
+*.diff
+*.o
+lib/*.lib
+src/*.lib
+src/fontconfig_*
