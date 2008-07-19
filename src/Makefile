@@ -49,7 +49,7 @@ CFLAGS += -I../$(INCLUDEDIR) $(FONTCONFIG_CFLAGS) $(FREETYPE_CFLAGS)
 	@echo $<
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(FONTCONFIG_OUT): $(FONTCONFIG_OBJS)
+$(FONTCONFIG_OUT)_dynamic: $(FONTCONFIG_OBJS)
 	@echo "Link Fontconfig into $(FONTCONFIG_OUT)..."
 	@echo "LIBRARY $(FONTCONFIG_NAME) INITINSTANCE TERMINSTANCE" \
 	   > $(FONTCONFIG_NAME).def
@@ -61,6 +61,10 @@ $(FONTCONFIG_OUT): $(FONTCONFIG_OBJS)
 	      $(FONTCONFIG_NAME).def $^
 	emximp -o $(FONTCONFIG_NAME).lib $(FONTCONFIG_NAME).def
 
+$(FONTCONFIG_OUT): $(FONTCONFIG_OBJS)
+	@echo "Create Fontconfig library $(FONTCONFIG_OUT)..."
+	emxomfar rc $@ $(FONTCONFIG_OBJS)
+
 $(FREETYPE_OUT):	$(FREETYPE_OBJS)
 	@echo "Create FreeType library ($(FREETYPE_OUT))..."
 	emxomfar rc $@ $(FREETYPE_OBJS)
@@ -69,9 +73,6 @@ $(FREETYPE_OUT):	$(FREETYPE_OBJS)
 
 clean:	
 	rm -f $(FONTCONFIG_OBJS) $(FREETYPE_OBJS) \
-	      $(FONTCONFIG_NAME).def \
 	      $(FONTCONFIG_NAME).lib \
-	      $(FONTCONFIG_NAME).dll \
-	      $(FONTCONFIG_NAME).map \
 	      $(FREETYPE_OUT)
 

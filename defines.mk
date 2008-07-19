@@ -1,7 +1,7 @@
 # Defines for Makefile for GNU make
 
 FONTCONFIG_NAME = mzfntcfg
-FONTCONFIG_OUT = $(FONTCONFIG_NAME).dll
+FONTCONFIG_OUT = $(FONTCONFIG_NAME).lib
 
 FREETYPE_NAME = mozft
 FREETYPE_OUT = $(FREETYPE_NAME).lib

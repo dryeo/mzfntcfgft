@@ -12,9 +12,9 @@ Move the whole directory containing this package where you want it installed
 and then run
    make -s
    make clean
-This compiles all files, links them into mzfntcfg.dll and adapts the
-installation to your directory tree. Then it removes the unnecessary object
-files.
+This compiles all files, collects the object files into mzfntcfg.lib and mozft.lib
+and adapts the installation to your directory tree. Then it removes the unnecessary
+object files.
 (If for whatever reason you want to recompile everything, do
    make -s nuke all
    make clean
@@ -52,8 +52,15 @@ See mzfntcfg.COPYING for copyright information. That file contains the required
 copyright notes from both base packages.
 
 
+- History
+20070528  - Change from DLL and DLL import library to static import library
+          + Fix a small mistake when returning the matched font name
+20070518  - Upgrade to FT 2.3.4 and switch from standard FC to Netlabs
+            version
+
+
 - Contact person
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 18May2007
+Peter Weilbacher <mozilla@Weilbacher.org>, 28May2007

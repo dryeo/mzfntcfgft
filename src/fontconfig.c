@@ -622,8 +622,8 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
     if (pResult)
     {
       memcpy(pResult, p, sizeof(FcPattern));
-      if (p->family)
-        pResult->family = strdup(p->family);
+      if (pFont->achFamilyName)
+        pResult->family = strdup(pFont->achFamilyName);
 
       pResult->pFontDesc = pFont;
     }
