@@ -12,7 +12,7 @@ INCLUDEDIR = include
 SRCDIR = src
 
 CC = gcc
-CFLAGS = -Wall -O2 -Zomf -pipe
-#CFLAGS = -Wall -g -O2 -Zomf -pipe
+#CFLAGS = -Wall -O2 -Zomf -pipe
+CFLAGS = -Wall -g -O2 -Zomf -pipe
 	
 
