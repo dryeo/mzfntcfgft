@@ -62,6 +62,7 @@ struct _FcPattern
     int rgba;
     double size;
     char *style;
+    FT_Face ftface;
 
     FontDescriptionCache_p pFontDesc;
 };
@@ -860,6 +861,29 @@ fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 
   return FcFalse;
 }
+
+fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_Face f)
+{
+  if (strcmp(object, FC_FT_FACE)==0)
+  {
+    p->ftface = f;
+    return FcTrue;
+  }
+
+  return FcFalse;
+}
+
+fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, int n, FT_Face *f)
+{
+  if (strcmp(object, FC_FT_FACE)==0)
+  {
+    *f = p->ftface;
+    return FcResultMatch;
+  }
+
+  return FcResultNoMatch;
+}
+
 
 #define DEFAULT_SERIF_FONT          "Times New Roman"
 #define DEFAULT_SANSSERIF_FONT      "Helvetica"
