@@ -878,7 +878,8 @@ fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, in
   if (strcmp(object, FC_FT_FACE)==0)
   {
     *f = p->ftface;
-    return FcResultMatch;
+    if (*f) /* only return success if this is a valid pointer */
+      return FcResultMatch;
   }
 
   return FcResultNoMatch;
