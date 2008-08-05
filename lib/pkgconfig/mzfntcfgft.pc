@@ -1,5 +1,5 @@
 
-prefix=g:/Mozilla/Compile/mzfntcfgft
+prefix=D:/mzfntcfgft
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${exec_prefix}/include
