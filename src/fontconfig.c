@@ -1355,6 +1355,11 @@ fcExport FcPattern *FcFreeTypeQuery(const FcChar8 *file, int id, FcBlanks *blank
   return pattern;
 }
 
+fcExport FT_UInt FcFreeTypeCharIndex (FT_Face face, FcChar32 ucs4)
+{
+  return FT_Get_Char_Index(face, ucs4);
+}
+
 fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
 {
   /* point to the same pattern */
