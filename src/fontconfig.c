@@ -62,7 +62,7 @@ struct _FcPattern
     int rgba;
     double size;
     char *style;
-    FT_Face ftface;
+    FT_Face face;
 
     FontDescriptionCache_p pFontDesc;
 };
@@ -866,7 +866,7 @@ fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_F
 {
   if (strcmp(object, FC_FT_FACE)==0)
   {
-    p->ftface = f;
+    p->face = f;
     return FcTrue;
   }
 
@@ -875,11 +875,10 @@ fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_F
 
 fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, int n, FT_Face *f)
 {
-  if (strcmp(object, FC_FT_FACE)==0)
+  if (strcmp(object, FC_FT_FACE)==0 && p && p->face)
   {
-    *f = p->ftface;
-    if (*f) /* only return success if this is a valid pointer */
-      return FcResultMatch;
+    *f = p->face;
+    return FcResultMatch;
   }
 
   return FcResultNoMatch;
@@ -1351,6 +1350,7 @@ fcExport FcPattern *FcFreeTypeQuery(const FcChar8 *file, int id, FcBlanks *blank
   strcpy(pattern->family, ftface->family_name);
   pattern->style = (char*)malloc(strlen(ftface->style_name));
   strcpy(pattern->style, ftface->style_name);
+  FT_Done_Face(ftface);
 
   return pattern;
 }
