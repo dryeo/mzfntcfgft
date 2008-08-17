@@ -55,6 +55,11 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20080806  - Implement FcPatternAddFTFace() and FcPatternGetFTFace() to be able
+            to build newer post-1.6 cairo and Mozilla from mozilla-central
+          - Add FcFreeTypeCharIndex()
+          - Use CVS version of T1_Face_Init() in FreeType to properly represent
+            OS/2 Type1 fonts
 20080617  - fix problem with font styles introduced with FT 2.3.6
           - update FontConfig to write its cache to a seperate INI file instead
             of OS2.INI (by Doodle)
@@ -89,4 +94,4 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 If you want to complain please post to the group mozilla.dev.ports.os2 on the
 newsserver news.mozilla.org.
 
-Peter Weilbacher <mozilla@Weilbacher.org>, 2008-06-17
+Peter Weilbacher <mozilla@Weilbacher.org>, 2008-08-06
