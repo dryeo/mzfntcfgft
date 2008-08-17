@@ -1143,14 +1143,14 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
       if (pFont->achFamilyName)
         pResult->family = strdup(pFont->achFamilyName);
 
-      if (stristr(pResult->family, "BOLD")!=NULL)
+      if (stristr(pFont->achStyleName, "BOLD")!=NULL)
         pResult->weight = FC_WEIGHT_BOLD;
       else
         pResult->weight = FC_WEIGHT_REGULAR;
 
-      if (stristr(pResult->family, "ITALIC")!=NULL)
+      if (stristr(pFont->achStyleName, "ITALIC")!=NULL)
         pResult->slant = FC_SLANT_ITALIC;
-      else if (stristr(pResult->family, "OBLIQUE")!=NULL)
+      else if (stristr(pFont->achStyleName, "OBLIQUE")!=NULL)
         pResult->slant = FC_SLANT_OBLIQUE;
       else
         pResult->slant = FC_SLANT_ROMAN;
