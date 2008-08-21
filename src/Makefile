@@ -52,10 +52,12 @@ $(FONTCONFIG_OUT)_dynamic: $(FONTCONFIG_OBJS)
 
 $(FONTCONFIG_OUT): $(FONTCONFIG_OBJS)
 	@echo "Create Fontconfig library $(FONTCONFIG_OUT)..."
+	rm -f $@
 	emxomfar rc $@ $(FONTCONFIG_OBJS)
 
 $(FREETYPE_OUT):	$(FREETYPE_OBJS)
 	@echo "Create FreeType library ($(FREETYPE_OUT))..."
+	rm -f $@
 	emxomfar rc $@ $(FREETYPE_OBJS)
 
 .PHONY: clean
