@@ -1439,3 +1439,9 @@ fcExport FcBool FcConfigUptoDate(FcConfig *config)
   // We should do something like we do at FcInit()...
   return FcTrue;
 }
+
+fcExport FcConfig *FcConfigGetCurrent(void)
+{
+  // Stub
+  return NULL;
+}
