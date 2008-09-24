@@ -6,6 +6,6 @@ includedir=${exec_prefix}/include
 
 Name: Freetype2
 Description: Provides FontConfig and Freetype
-Version: 8.0.2
+Version: 9.17.3
 Libs: -L${libdir} -lmozft -lmzfntcfg"
 Cflags: -I${includedir}
