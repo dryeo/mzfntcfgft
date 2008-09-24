@@ -6,6 +6,6 @@ includedir=${exec_prefix}/include
 
 Name: FONTCONFIG
 Description: Provides FontConfig and Freetype
-Version: 0.5
+Version: 2.4.0
 Libs: -L${libdir} -lmozft -lmzfntcfg"
 Cflags: -I${includedir}
