@@ -72,6 +72,8 @@ static FT_Library hFtLib;
 static HINI       hiniFontCacheStorage;
 static FontDescriptionCache_p pFontDescriptionCacheHead;
 static FontDescriptionCache_p pFontDescriptionCacheLast;
+static time_t initTime;
+#define FC_TIMER_DEFAULT 30 // reinit after 30s by default, as in original FC
 
 fcExport void FcFini()
 {
@@ -574,6 +576,9 @@ fcExport FcBool FcInit()
   // Free resources
   free(pchFontNameList);
   CloseCacheStorageIniFile();
+
+  // store the time for FcInitReinitialize
+  initTime = time(NULL);
 
   return FcTrue;
 }
@@ -1426,8 +1431,15 @@ fcExport FcBool FcInitReinitialize(void)
   return FcInit();
 }
 
+// The FC docs say that this function should only reinit the configuration
+// if a certain time passed. For now set this timer to a fixed value of 60s.
 fcExport FcBool FcInitBringUptoDate(void)
 {
+  time_t now = time(NULL);
+  double dtime = difftime(now, initTime);
+  if (dtime <= FC_TIMER_DEFAULT)
+    return FcTrue;
+
   FcFini();
   return FcInit();
 }
