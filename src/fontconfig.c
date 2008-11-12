@@ -1457,3 +1457,49 @@ fcExport FcConfig *FcConfigGetCurrent(void)
   // Stub
   return NULL;
 }
+
+/*
+ * test langset for language support
+ * FcLangSetHasLang checks whether ls supports lang. If ls has a matching
+ * language and territory pair, this function returns FcLangEqual. If ls has
+ * a matching language but differs in which territory that language is for,
+ * this function returns FcLangDiffentTerritory. If ls has no matching
+ * language, this function returns FcLangDifferentLang.
+ */
+fcExport FcLangResult FcLangSetHasLang(const FcLangSet *ls, const FcChar8 *lang)
+{
+  // Stub
+  return FcLangEqual;
+}
+
+/*
+ * Get config font set
+ * Returns one of the two sets of fonts from the configuration as specified by
+ * set. This font set is owned by the library and must not be freed.
+ */
+fcExport FcFontSet *FcConfigGetFonts(FcConfig *config, FcSetName set)
+{
+  // Stub
+  return NULL;
+}
+
+fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)
+{
+  /* It's actually wrong to use stricmp here, because this doesn't know
+   * anything about UTF-8. But in the original FC package this also just
+   * lowers ASCII characters for comparison, so this should be a good
+   * and simple replacement.
+   */
+  return stricmp(s1, s2);
+}
+
+/*
+ * Increment pattern reference count
+ * Add another reference to p. Patterns are freed only when the reference count reaches
+ * zero.
+ */
+fcExport void FcPatternReference (FcPattern *p)
+{
+  // Stub
+  return;
+}
