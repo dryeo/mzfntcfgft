@@ -63,6 +63,7 @@ struct _FcPattern
     double size;
     char *style;
     FT_Face face;
+    int ref;
 
     FontDescriptionCache_p pFontDesc;
 };
@@ -598,11 +599,14 @@ fcExport FcPattern *FcPatternCreate (void)
   /* set the strings to NULL for easy testing */
   pResult->family = NULL;
   pResult->style = NULL;
+  pResult->ref = 1;
   return pResult;
 }
 
 fcExport void FcPatternDestroy (FcPattern *p)
 {
+  if (--p->ref > 0)
+    return;
   if (p->family)
     free(p->family);
   if (p->style)
@@ -1495,11 +1499,10 @@ fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)
 
 /*
  * Increment pattern reference count
- * Add another reference to p. Patterns are freed only when the reference count reaches
- * zero.
+ * Add another reference to p. Patterns are freed only when the reference
+ * count reaches zero.
  */
 fcExport void FcPatternReference (FcPattern *p)
 {
-  // Stub
-  return;
+  p->ref++;
 }
