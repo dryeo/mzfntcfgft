@@ -1478,13 +1478,23 @@ fcExport FcLangResult FcLangSetHasLang(const FcLangSet *ls, const FcChar8 *lang)
 
 /*
  * Get config font set
- * Returns one of the two sets of fonts from the configuration as specified by
- * set. This font set is owned by the library and must not be freed.
+ * We only support the system font set and not app specific configs like the
+ * original function does.
  */
 fcExport FcFontSet *FcConfigGetFonts(FcConfig *config, FcSetName set)
 {
-  // Stub
-  return NULL;
+  FcFontSet *s = NULL;
+  FcPattern *p;
+
+  /* we don't handle app specific configs */
+  if (set != FcSetSystem)
+    return NULL;
+
+  /* return listing of all fonts, using an empty pattern */
+  p = FcPatternCreate();
+  s = FcFontList(config, p, NULL);
+  FcPatternDestroy(p);
+  return s;
 }
 
 fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)
