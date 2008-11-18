@@ -1334,7 +1334,7 @@ fcExport FcFontSet *FcFontSort(FcConfig *config, FcPattern *p, FcBool trim, FcCh
   // Use the same code as for FcFontList().
 
   *result = FcResultMatch;
-  return (FcFontList(config, p, NULL));
+  return FcFontList(config, p, NULL);
 }
 
 /* Constructs a pattern representing the 'id'th font in 'file'. *
