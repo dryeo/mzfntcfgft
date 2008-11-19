@@ -933,14 +933,15 @@ fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, in
 #define DEFAULT_SANSSERIF_FONT      "Helvetica"
 #define DEFAULT_MONOSPACED_FONT     "Courier"
 
-fcExport FcPattern *FcFontMatch (FcConfig	*config,
-                                 FcPattern	*p,
-                                 FcResult	*result)
+fcExport FcPattern *FcFontMatch (FcConfig *config, FcPattern *p, FcResult *result)
 {
   FontDescriptionCache_p pFont, pBestMatch;
   int iBestMatchScore;
   int bWeightOk;
   int bSlantOk;
+
+  if (!p)
+    return NULL;
 
   pFont = pFontDescriptionCacheHead;
   pBestMatch = NULL;
@@ -1210,15 +1211,13 @@ fcExport FcPattern *FcFontMatch (FcConfig	*config,
     if (result)
       *result = FcResultMatch;
     return pResult;
-  } else
-  {
-#ifdef MATCH_DEBUG
-    printf("no best match!!!\n");
-#endif
-    if (result)
-      *result = FcResultNoMatch;
-    return NULL;
   }
+#ifdef MATCH_DEBUG
+  printf("no best match!!!\n");
+#endif
+  if (result)
+    *result = FcResultNoMatch;
+  return NULL;
 }
 
 fcExport FcBool FcPatternDel(FcPattern *p, const char *object)
