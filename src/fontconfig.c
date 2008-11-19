@@ -281,7 +281,7 @@ static void OpenCacheStorageIniFile()
   if (pchEnvVar)
   {
     int iLen;
-    
+
     snprintf(achCacheStorageFilename, sizeof(achCacheStorageFilename)-1, "%s", pchEnvVar);
     // Make sure it will have the trailing backslash!
     iLen = strlen(achCacheStorageFilename);
@@ -307,7 +307,7 @@ static void OpenCacheStorageIniFile()
     if (pchEnvVar)
     {
       int iLen;
-      
+
       snprintf(achCacheStorageFilename, sizeof(achCacheStorageFilename)-1, "%s", pchEnvVar);
       // Make sure it will have the trailing backslash!
       iLen = strlen(achCacheStorageFilename);
@@ -606,6 +606,9 @@ fcExport FcPattern *FcPatternCreate (void)
 
 fcExport void FcPatternDestroy (FcPattern *p)
 {
+  if (!p)
+    return;
+
   if (--p->ref > 0)
     return;
   if (p->family)
@@ -615,9 +618,7 @@ fcExport void FcPatternDestroy (FcPattern *p)
   free(p);
 }
 
-fcExport FcBool FcConfigSubstitute (FcConfig	*config,
-                                    FcPattern	*p,
-                                    FcMatchKind	kind)
+fcExport FcBool FcConfigSubstitute (FcConfig *config, FcPattern *p, FcMatchKind kind)
 {
   // STUB
   return FcTrue;
@@ -626,24 +627,27 @@ fcExport FcBool FcConfigSubstitute (FcConfig	*config,
 
 fcExport void FcDefaultSubstitute (FcPattern *pattern)
 {
-  if (pattern)
-  {
-    if (pattern->weight==0)
-      pattern->weight = FC_WEIGHT_MEDIUM;
-    if (pattern->slant==0)
-      pattern->slant = FC_SLANT_ROMAN;
-    if (pattern->spacing==0)
-      pattern->spacing = FC_PROPORTIONAL;
-    if (pattern->pixelsize==0)
-      pattern->pixelsize = 12.0 * 1.0 * 75.0 / 72.0; // font size * scale * dpi / 72.0;
-    if (pattern->size==0)
-      pattern->size = 12.0;
-    /* don't mess with the other settings, especially not with the boolean ones */
-  }
+  if (!pattern)
+    return;
+
+  if (pattern->weight==0)
+    pattern->weight = FC_WEIGHT_MEDIUM;
+  if (pattern->slant==0)
+    pattern->slant = FC_SLANT_ROMAN;
+  if (pattern->spacing==0)
+    pattern->spacing = FC_PROPORTIONAL;
+  if (pattern->pixelsize==0)
+    pattern->pixelsize = 12.0 * 1.0 * 75.0 / 72.0; // font size * scale * dpi / 72.0;
+  if (pattern->size==0)
+    pattern->size = 12.0;
+  /* don't mess with the other settings, especially not with the boolean ones */
 }
 
 fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int n, int *i)
 {
+  if (!p)
+    return FcResultNoMatch;
+
   if (strcmp(object, FC_INDEX)==0)
   {
     *i = p->pFontDesc->lFontIndex;
@@ -674,6 +678,9 @@ fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, i
 
 fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, int n, FcChar8 ** s)
 {
+  if (!p)
+    return FcResultNoMatch;
+
   if (strcmp(object, FC_FILE)==0)
   {
     *s = p->pFontDesc->achFileName;
@@ -713,6 +720,9 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
 
 fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int n, FcBool *b)
 {
+  if (!p)
+    return FcResultNoMatch;
+
   if (strcmp(object, FC_HINTING)==0)
   {
     *b = p->hinting;
@@ -743,6 +753,9 @@ fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int 
 
 fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, FcValue *v)
 {
+  if (!v)
+    return FcResultNoMatch;
+
   if (strcmp(object, FC_ANTIALIAS)==0)
   {
     v->type = FcTypeBool;
@@ -755,6 +768,9 @@ fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, 
 
 fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
 {
+  if (!p)
+    return FcFalse;
+
   if (strcmp(object, FC_INDEX)==0)
   {
     p->pFontDesc->lFontIndex = i;
@@ -786,6 +802,9 @@ fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
 
 fcExport FcBool FcPatternAddDouble(FcPattern *p, const char *object, double d)
 {
+  if (!p)
+    return FcFalse;
+
   if (strcmp(object, FC_PIXEL_SIZE)==0)
   {
     p->pixelsize = d;
@@ -802,6 +821,9 @@ fcExport FcBool FcPatternAddDouble(FcPattern *p, const char *object, double d)
 
 fcExport FcResult FcPatternGetDouble(const FcPattern *p, const char *object, int id, double *d)
 {
+  if (!p)
+    return FcResultNoMatch;
+
   if (strcmp(object, FC_PIXEL_SIZE)==0)
   {
     *d = p->pixelsize;
@@ -818,6 +840,9 @@ fcExport FcResult FcPatternGetDouble(const FcPattern *p, const char *object, int
 
 fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
 {
+  if (!p)
+    return FcFalse;
+
   if (strcmp(object, FC_FAMILY)==0)
   {
     if (p->family)
@@ -843,6 +868,9 @@ fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcCh
 
 fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 {
+  if (!p)
+    return FcFalse;
+
   if (strcmp(object, FC_HINTING)==0)
   {
     p->hinting = b;
@@ -874,6 +902,9 @@ fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
 
 fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_Face f)
 {
+  if (!p)
+    return FcFalse;
+
   if (strcmp(object, FC_FT_FACE)==0)
   {
     p->face = f;
@@ -885,6 +916,9 @@ fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_F
 
 fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, int n, FT_Face *f)
 {
+  if (!p)
+    return FcResultNoMatch;
+
   if (strcmp(object, FC_FT_FACE)==0 && p && p->face)
   {
     *f = p->face;
@@ -1497,6 +1531,7 @@ fcExport FcFontSet *FcConfigGetFonts(FcConfig *config, FcSetName set)
   FcFontSet *s = NULL;
   FcPattern *p;
 
+
   /* we don't handle app specific configs */
   if (set != FcSetSystem)
     return NULL;
@@ -1525,5 +1560,8 @@ fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)
  */
 fcExport void FcPatternReference (FcPattern *p)
 {
+  if (!p)
+    return;
+
   p->ref++;
 }
