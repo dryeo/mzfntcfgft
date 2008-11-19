@@ -16,6 +16,7 @@
 #define INCL_SHLERRORS
 #include <os2.h>
 #include <fontconfig/fontconfig.h>
+#include <fontconfig/fcfreetype.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -1338,29 +1339,39 @@ fcExport FcFontSet *FcFontSort(FcConfig *config, FcPattern *p, FcBool trim, FcCh
 }
 
 /* Constructs a pattern representing the 'id'th font in 'file'. *
- * The number of fonts in 'file' is returned in 'count'.        */
-// XXX what to do about the FcBlanks* parameter?
+ * The number of fonts in 'file' is returned in 'count'.        *
+ * 'blanks' is ignored.                                         */
 fcExport FcPattern *FcFreeTypeQuery(const FcChar8 *file, int id, FcBlanks *blanks, int *count)
 {
-  FcPattern *pattern = FcPatternCreate();
+  FcPattern *pattern = NULL;
   FT_Face ftface;
-
-  FcDefaultSubstitute(pattern);
 
   if (FT_New_Face(hFtLib, file, id, &ftface))
   {
     /* Could not load font. */
-    FcPatternDestroy(pattern);
     *count = 0;
     return NULL;
   }
   *count = ftface->num_faces;
-  pattern->family = (char*)malloc(strlen(ftface->family_name));
-  strcpy(pattern->family, ftface->family_name);
-  pattern->style = (char*)malloc(strlen(ftface->style_name));
-  strcpy(pattern->style, ftface->style_name);
+
+  pattern = FcFreeTypeQueryFace(ftface, file, id, blanks);
   FT_Done_Face(ftface);
 
+  return pattern;
+}
+
+/*
+ * compute pattern from FT_Face
+ * Constructs a pattern representing 'face', all other parameters are ignored.
+ */
+fcExport FcPattern *FcFreeTypeQueryFace(const FT_Face face, const FcChar8 *file, int id, FcBlanks *blanks)
+{
+  FcPattern *pattern = FcPatternCreate();
+  FcDefaultSubstitute(pattern);
+  pattern->family = (char*)malloc(strlen(face->family_name));
+  strcpy(pattern->family, face->family_name);
+  pattern->style = (char*)malloc(strlen(face->style_name));
+  strcpy(pattern->style, face->style_name);
   return pattern;
 }
 
