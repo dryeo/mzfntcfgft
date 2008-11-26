@@ -76,6 +76,7 @@ static FontDescriptionCache_p pFontDescriptionCacheHead;
 static FontDescriptionCache_p pFontDescriptionCacheLast;
 static time_t initTime;
 #define FC_TIMER_DEFAULT 30 // reinit after 30s by default, as in original FC
+static void *pConfig;
 
 fcExport void FcFini()
 {
@@ -85,6 +86,10 @@ fcExport void FcFini()
     /* Uninitialize FreeType */
     FT_Done_FreeType(hFtLib);
     hFtLib = NULL; /* ensure that we won't do this again */
+  }
+
+  if (pConfig) {
+    free(pConfig); // don't need this config any more
   }
 
   /* Destroy Font Description Cache */
@@ -487,6 +492,7 @@ fcExport FcBool FcInit()
     fprintf(stderr, "XX: Out of memory at cache cleanup\n");
 #endif
     CloseCacheStorageIniFile();
+    pConfig = (void *)malloc(sizeof(void)); // we now have a config
     return FcTrue;
   }
 
@@ -582,6 +588,7 @@ fcExport FcBool FcInit()
   // store the time for FcInitReinitialize
   initTime = time(NULL);
 
+  pConfig = (void *)malloc(sizeof(void)); // we now have a config
   return FcTrue;
 }
 
@@ -643,10 +650,13 @@ fcExport void FcDefaultSubstitute (FcPattern *pattern)
   /* don't mess with the other settings, especially not with the boolean ones */
 }
 
-fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int n, int *i)
+fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int id, int *i)
 {
   if (!p)
     return FcResultNoMatch;
+
+  if (id) // we don't support more than one property of the same type
+    return FcResultNoId;
 
   if (strcmp(object, FC_INDEX)==0)
   {
@@ -676,10 +686,13 @@ fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, i
   return FcResultNoMatch;
 }
 
-fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, int n, FcChar8 ** s)
+fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, int id, FcChar8 ** s)
 {
   if (!p)
     return FcResultNoMatch;
+
+  if (id) // we don't support more than one property of the same type
+    return FcResultNoId;
 
   if (strcmp(object, FC_FILE)==0)
   {
@@ -718,10 +731,13 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
   return FcResultNoMatch;
 }
 
-fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int n, FcBool *b)
+fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int id, FcBool *b)
 {
   if (!p)
     return FcResultNoMatch;
+
+  if (id) // we don't support more than one property of the same type
+    return FcResultNoId;
 
   if (strcmp(object, FC_HINTING)==0)
   {
@@ -755,6 +771,9 @@ fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, 
 {
   if (!v)
     return FcResultNoMatch;
+
+  if (id) // we don't support more than one property of the same type
+    return FcResultNoId;
 
   if (strcmp(object, FC_ANTIALIAS)==0)
   {
@@ -823,6 +842,9 @@ fcExport FcResult FcPatternGetDouble(const FcPattern *p, const char *object, int
 {
   if (!p)
     return FcResultNoMatch;
+
+  if (id) // we don't support more than one property of the same type
+    return FcResultNoId;
 
   if (strcmp(object, FC_PIXEL_SIZE)==0)
   {
@@ -914,10 +936,13 @@ fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_F
   return FcFalse;
 }
 
-fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, int n, FT_Face *f)
+fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, int id, FT_Face *f)
 {
   if (!p)
     return FcResultNoMatch;
+
+  if (id) // we don't support more than one property of the same type
+    return FcResultNoId;
 
   if (strcmp(object, FC_FT_FACE)==0 && p && p->face)
   {
@@ -1502,8 +1527,7 @@ fcExport FcBool FcConfigUptoDate(FcConfig *config)
 
 fcExport FcConfig *FcConfigGetCurrent(void)
 {
-  // Stub
-  return NULL;
+  return pConfig;
 }
 
 /*
