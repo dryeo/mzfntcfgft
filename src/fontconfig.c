@@ -90,6 +90,7 @@ fcExport void FcFini()
 
   if (pConfig) {
     free(pConfig); // don't need this config any more
+    pConfig = NULL;
   }
 
   /* Destroy Font Description Cache */
@@ -1500,8 +1501,18 @@ fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
 
 fcExport FcBool FcInitReinitialize(void)
 {
+  // allocate new config while the old one is still active, so that we
+  // get a new address for the new config
+  void *newConfig = (void *)malloc(sizeof(void));
+
   FcFini();
-  return FcInit();
+  FcBool rc = FcInit();
+
+  if (pConfig)
+    free(pConfig);
+  pConfig = newConfig;
+
+  return rc;
 }
 
 // The FC docs say that this function should only reinit the configuration
@@ -1513,8 +1524,18 @@ fcExport FcBool FcInitBringUptoDate(void)
   if (dtime <= FC_TIMER_DEFAULT)
     return FcTrue;
 
+  // allocate new config while the old one is still active, so that we
+  // get a new address for the new config
+  void *newConfig = (void *)malloc(sizeof(void));
+
   FcFini();
-  return FcInit();
+  FcBool rc = FcInit();
+
+  if (pConfig)
+    free(pConfig);
+  pConfig = newConfig;
+
+  return rc;
 }
 
 fcExport FcBool FcConfigUptoDate(FcConfig *config)
