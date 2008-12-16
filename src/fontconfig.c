@@ -1500,6 +1500,7 @@ fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
 
 fcExport FcBool FcInitReinitialize(void)
 {
+printf("FcInitReinitialize(): real\n");
   FcFini();
   return FcInit();
 }
@@ -1511,8 +1512,12 @@ fcExport FcBool FcInitBringUptoDate(void)
   time_t now = time(NULL);
   double dtime = difftime(now, initTime);
   if (dtime <= FC_TIMER_DEFAULT)
+{
+printf("FcInitBringUptoDate(): just testing...\n");
     return FcTrue;
+}
 
+printf("FcInitBringUptoDate(): for real!\n");
   FcFini();
   return FcInit();
 }
@@ -1587,4 +1592,16 @@ fcExport void FcPatternReference (FcPattern *p)
     return;
 
   p->ref++;
+}
+
+fcExport void FcFontListDebug(void)
+{
+  FontDescriptionCache_p pFont;
+
+  pFont = pFontDescriptionCacheHead;
+  while (pFont)
+  {
+    printf("%s, %s\n", pFont->achFamilyName, pFont->achStyleName);
+    pFont = pFont->pNext;
+  }
 }

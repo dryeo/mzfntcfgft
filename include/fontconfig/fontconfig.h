@@ -536,6 +536,8 @@ FcFontList (FcConfig	*config,
 	    FcPattern	*p,
 	    FcObjectSet *os);
 
+void FcFontListDebug(void);
+
 /* fcatomic.c */
 
 FcAtomic *
