@@ -1609,3 +1609,18 @@ fcExport void FcPatternReference (FcPattern *p)
 
   p->ref++;
 }
+
+/*
+ * Copy a pattern
+ * Copy a pattern, returning a new pattern that matches p. Each pattern may be
+ * modified without affecting the other.
+ */
+fcExport FcPattern *FcPatternDuplicate(const FcPattern *p)
+{
+  FcPattern *pResult = malloc(sizeof(FcPattern));
+  if (pResult)
+  {
+    memcpy(pResult, p, sizeof(FcPattern));
+  }
+  return pResult;
+}
