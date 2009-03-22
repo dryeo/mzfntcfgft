@@ -164,8 +164,8 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
 #endif
   ulSize = sizeof(FontDescriptionCache_t);
   /* Store font cache in INI file */
-  PrfWriteProfileData(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
-                      achKeyName, pFontCache, ulSize);
+  PrfWriteProfileData(hiniFontCacheStorage, (PSZ)"PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                      (PSZ)achKeyName, pFontCache, ulSize);
 
   return 1;
 }
@@ -219,8 +219,8 @@ static void CacheFontDescription(char *pchFontName, char *pchFontFileName)
     /* Try to read back the font cache for this pair from the INI file */
     memset(&FontDesc, 0, sizeof(FontDesc));
     ulSize = sizeof(FontDesc);
-    rc = PrfQueryProfileData(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
-                             achKeyName,
+    rc = PrfQueryProfileData(hiniFontCacheStorage, (PSZ)"PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                             (PSZ)achKeyName,
                              &FontDesc,  &ulSize);
     if ((ulSize!=sizeof(FontDesc)) || (!rc))
     {
@@ -300,7 +300,7 @@ static void OpenCacheStorageIniFile()
     // Now put there the ini file name!
     strncat(achCacheStorageFilename, "fccache.ini", sizeof(achCacheStorageFilename));
     // Try to open that file!
-    hiniFontCacheStorage = PrfOpenProfile((HAB)1, achCacheStorageFilename);
+    hiniFontCacheStorage = PrfOpenProfile((HAB)1, (PSZ)achCacheStorageFilename);
   }
 
   if (hiniFontCacheStorage == NULLHANDLE)
@@ -326,7 +326,7 @@ static void OpenCacheStorageIniFile()
       // Now put there the ini file name!
       strncat(achCacheStorageFilename, "fccache.ini", sizeof(achCacheStorageFilename));
       // Try to open that file!
-      hiniFontCacheStorage = PrfOpenProfile((HAB)1, achCacheStorageFilename);
+      hiniFontCacheStorage = PrfOpenProfile((HAB)1, (PSZ)achCacheStorageFilename);
     }
   }
 
@@ -334,7 +334,7 @@ static void OpenCacheStorageIniFile()
   {
     // Falling back to current directory...
     snprintf(achCacheStorageFilename, sizeof(achCacheStorageFilename)-1, "fccache.ini");
-    hiniFontCacheStorage = PrfOpenProfile((HAB)1, achCacheStorageFilename);
+    hiniFontCacheStorage = PrfOpenProfile((HAB)1, (PSZ)achCacheStorageFilename);
   }
 
   if (hiniFontCacheStorage == NULLHANDLE)
@@ -426,13 +426,14 @@ fcExport FcBool FcInit()
 #ifdef FONTCONFIG_DEBUG_PRINTF
     fprintf(stderr, "XX: Querying PM_Fonts (size=%d)\n", uiFontNameListSize);
 #endif
-    PrfQueryProfileString(HINI_USER, "PM_Fonts", NULL, NULL, pchFontNameList, uiFontNameListSize);
+    PrfQueryProfileString(HINI_USER, (PSZ)"PM_Fonts", NULL, NULL,
+                          pchFontNameList, uiFontNameListSize);
     if ((SHORT) WinGetLastError((HAB)1) == PMERR_BUFFER_TOO_SMALL)
     {
-      unsigned char *pchNewPtr;
+      char *pchNewPtr;
       // Seems like the list of fonts is query large, we need a bigger buffer
       uiFontNameListSize+=512;
-      pchNewPtr = (unsigned char *) realloc(pchFontNameList, uiFontNameListSize);
+      pchNewPtr = (char *)realloc(pchFontNameList, uiFontNameListSize);
       if (!pchNewPtr)
       {
         // Could not reallocate it!
@@ -452,7 +453,8 @@ fcExport FcBool FcInit()
   pchCurrentFont = pchFontNameList;
   while (pchCurrentFont[0])
   {
-    PrfQueryProfileString(HINI_USER, "PM_Fonts", pchCurrentFont, "", achFontFileName, CCHMAXPATH);
+    PrfQueryProfileString(HINI_USER, (PSZ)"PM_Fonts", (PSZ)pchCurrentFont,
+                          (PSZ)"", achFontFileName, CCHMAXPATH);
 
     // Get absolute file name for this font
     if (achFontFileName[0] == '\\' )
@@ -505,13 +507,14 @@ fcExport FcBool FcInit()
 #ifdef FONTCONFIG_DEBUG_PRINTF
     fprintf(stderr, "XX: Querying PM_Fonts_FontConfig_Cache list (size=%d)\n", uiFontNameListSize);
 #endif
-    PrfQueryProfileString(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING, NULL, NULL, pchFontNameList, uiFontNameListSize);
+    PrfQueryProfileString(hiniFontCacheStorage, (PSZ)"PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                          NULL, NULL, pchFontNameList, uiFontNameListSize);
     if ((SHORT) WinGetLastError((HAB)1) == PMERR_BUFFER_TOO_SMALL)
     {
-      unsigned char *pchNewPtr;
+      char *pchNewPtr;
       // Seems like the list of fonts is query large, we need a bigger buffer
       uiFontNameListSize+=512;
-      pchNewPtr = (unsigned char *) realloc(pchFontNameList, uiFontNameListSize);
+      pchNewPtr = (char *)realloc(pchFontNameList, uiFontNameListSize);
       if (!pchNewPtr)
       {
         // Could not reallocate it!
@@ -572,8 +575,8 @@ fcExport FcBool FcInit()
 #ifdef FONTCONFIG_DEBUG_PRINTF
     fprintf(stderr, "XX: Removing old ini entry [%s]\n", pchCurrentFont);
 #endif
-    PrfWriteProfileData(hiniFontCacheStorage, "PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
-                        pchCurrentFont, NULL, 0);
+    PrfWriteProfileData(hiniFontCacheStorage, (PSZ)"PM_Fonts_FontConfig_Cache_"FC_CACHE_VERSION_STRING,
+                        (PSZ)pchCurrentFont, NULL, 0);
 
     // Go for next font
     pchCurrentFont += strlen(pchCurrentFont)+1;
@@ -593,7 +596,7 @@ fcExport FcBool FcInit()
   return FcTrue;
 }
 
-fcExport FcPattern *FcPatternCreate (void)
+fcExport FcPattern *FcPatternCreate(void)
 {
   FcPattern *pResult = malloc(sizeof(FcPattern));
   if (pResult)
@@ -612,7 +615,7 @@ fcExport FcPattern *FcPatternCreate (void)
   return pResult;
 }
 
-fcExport void FcPatternDestroy (FcPattern *p)
+fcExport void FcPatternDestroy(FcPattern *p)
 {
   if (!p)
     return;
@@ -626,14 +629,14 @@ fcExport void FcPatternDestroy (FcPattern *p)
   free(p);
 }
 
-fcExport FcBool FcConfigSubstitute (FcConfig *config, FcPattern *p, FcMatchKind kind)
+fcExport FcBool FcConfigSubstitute(FcConfig *config, FcPattern *p, FcMatchKind kind)
 {
   // STUB
   return FcTrue;
 }
 
 
-fcExport void FcDefaultSubstitute (FcPattern *pattern)
+fcExport void FcDefaultSubstitute(FcPattern *pattern)
 {
   if (!pattern)
     return;
@@ -651,7 +654,7 @@ fcExport void FcDefaultSubstitute (FcPattern *pattern)
   /* don't mess with the other settings, especially not with the boolean ones */
 }
 
-fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, int id, int *i)
+fcExport FcResult FcPatternGetInteger(const FcPattern *p, const char *object, int id, int *i)
 {
   if (!p)
     return FcResultNoMatch;
@@ -687,7 +690,7 @@ fcExport FcResult FcPatternGetInteger (const FcPattern *p, const char *object, i
   return FcResultNoMatch;
 }
 
-fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, int id, FcChar8 ** s)
+fcExport FcResult FcPatternGetString(const FcPattern *p, const char *object, int id, FcChar8 **s)
 {
   if (!p)
     return FcResultNoMatch;
@@ -697,7 +700,7 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
 
   if (strcmp(object, FC_FILE)==0)
   {
-    *s = p->pFontDesc->achFileName;
+    *s = (FcChar8 *)p->pFontDesc->achFileName;
     return FcResultMatch;
   }
 
@@ -705,12 +708,12 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
   {
     if (p->family)
     {
-      *s = p->family;
+      *s = (FcChar8 *)p->family;
       return FcResultMatch;
     } else
     if (p->pFontDesc)
     {
-      *s = p->pFontDesc->achFamilyName;
+      *s = (FcChar8 *)p->pFontDesc->achFamilyName;
       return FcResultMatch;
     }
   }
@@ -719,12 +722,12 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
   {
     if (p->style)
     {
-      *s = p->style;
+      *s = (FcChar8 *)p->style;
       return FcResultMatch;
     } else
     if (p->pFontDesc)
     {
-      *s = p->pFontDesc->achStyleName;
+      *s = (FcChar8 *)p->pFontDesc->achStyleName;
       return FcResultMatch;
     }
   }
@@ -732,7 +735,7 @@ fcExport FcResult FcPatternGetString (const FcPattern *p, const char *object, in
   return FcResultNoMatch;
 }
 
-fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int id, FcBool *b)
+fcExport FcResult FcPatternGetBool(const FcPattern *p, const char *object, int id, FcBool *b)
 {
   if (!p)
     return FcResultNoMatch;
@@ -768,7 +771,7 @@ fcExport FcResult FcPatternGetBool (const FcPattern *p, const char *object, int 
   return FcResultNoMatch;
 }
 
-fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, FcValue *v)
+fcExport FcResult FcPatternGet(const FcPattern *p, const char *object, int id, FcValue *v)
 {
   if (!v)
     return FcResultNoMatch;
@@ -786,7 +789,7 @@ fcExport FcResult FcPatternGet (const FcPattern *p, const char *object, int id, 
 }
 
 
-fcExport FcBool FcPatternAddInteger (FcPattern *p, const char *object, int i)
+fcExport FcBool FcPatternAddInteger(FcPattern *p, const char *object, int i)
 {
   if (!p)
     return FcFalse;
@@ -861,7 +864,7 @@ fcExport FcResult FcPatternGetDouble(const FcPattern *p, const char *object, int
   return FcResultNoMatch;
 }
 
-fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcChar8 *s)
+fcExport FcBool FcPatternAddString(FcPattern *p, const char *object, const FcChar8 *s)
 {
   if (!p)
     return FcFalse;
@@ -872,7 +875,7 @@ fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcCh
     {
       free(p->family); p->family = NULL;
     }
-    p->family = strdup(s);
+    p->family = strdup((const char *)s);
     return FcTrue;
   }
 
@@ -882,14 +885,14 @@ fcExport FcBool FcPatternAddString (FcPattern *p, const char *object, const FcCh
     {
       free(p->style); p->style = NULL;
     }
-    p->style = strdup(s);
+    p->style = strdup((const char *)s);
     return FcTrue;
   }
 
   return FcFalse;
 }
 
-fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
+fcExport FcBool FcPatternAddBool(FcPattern *p, const char *object, FcBool b)
 {
   if (!p)
     return FcFalse;
@@ -923,7 +926,7 @@ fcExport FcBool FcPatternAddBool (FcPattern *p, const char *object, FcBool b)
   return FcFalse;
 }
 
-fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_Face f)
+fcExport FcBool FcPatternAddFTFace(FcPattern *p, const char *object, const FT_Face f)
 {
   if (!p)
     return FcFalse;
@@ -937,7 +940,7 @@ fcExport FcBool FcPatternAddFTFace (FcPattern *p, const char *object, const FT_F
   return FcFalse;
 }
 
-fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, int id, FT_Face *f)
+fcExport FcResult FcPatternGetFTFace(const FcPattern *p, const char *object, int id, FT_Face *f)
 {
   if (!p)
     return FcResultNoMatch;
@@ -959,7 +962,7 @@ fcExport FcResult FcPatternGetFTFace (const FcPattern *p, const char *object, in
 #define DEFAULT_SANSSERIF_FONT      "Helvetica"
 #define DEFAULT_MONOSPACED_FONT     "Courier"
 
-fcExport FcPattern *FcFontMatch (FcConfig *config, FcPattern *p, FcResult *result)
+fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result)
 {
   FontDescriptionCache_p pFont, pBestMatch;
   int iBestMatchScore;
@@ -1085,7 +1088,7 @@ fcExport FcPattern *FcFontMatch (FcConfig *config, FcPattern *p, FcResult *resul
     pBestMatch = NULL;
     iBestMatchScore = -1;
     // only search font list, if we set a key to search for
-    while (achKey && achKey[0] && pFont)
+    while (achKey != NULL && achKey[0] && pFont)
     {
       if (stricmp(pFont->achFamilyName, achKey) == 0 ||
           (achKeySpace && stricmp(pFont->achFamilyName, achKeySpace) == 0)
@@ -1258,7 +1261,7 @@ fcExport FcObjectSet *FcObjectSetBuild(const char *first, ...)
   // We assume that the object sets are always created for
   // FC_FAMILY parameters, as Mozilla uses only that.
 
-  FcObjectSet *result = (FcObjectSet *) malloc(sizeof(FcObjectSet));
+  FcObjectSet *result = (FcObjectSet *)malloc(sizeof(FcObjectSet));
 
   if (result)
     memset(result, 0, sizeof(FcObjectSet));
@@ -1276,7 +1279,7 @@ fcExport void FcObjectSetDestroy(FcObjectSet *os)
 
 fcExport FcFontSet *FcFontSetCreate(void)
 {
-  FcFontSet *result = (FcFontSet *) malloc(sizeof(FcFontSet));
+  FcFontSet *result = (FcFontSet *)malloc(sizeof(FcFontSet));
 
   if (result)
     memset(result, 0, sizeof(FcFontSet));
@@ -1405,7 +1408,7 @@ fcExport FcPattern *FcFreeTypeQuery(const FcChar8 *file, int id, FcBlanks *blank
   FcPattern *pattern = NULL;
   FT_Face ftface;
 
-  if (FT_New_Face(hFtLib, file, id, &ftface))
+  if (FT_New_Face(hFtLib, (const char *)file, id, &ftface))
   {
     /* Could not load font. */
     *count = 0;
@@ -1434,7 +1437,7 @@ fcExport FcPattern *FcFreeTypeQueryFace(const FT_Face face, const FcChar8 *file,
   return pattern;
 }
 
-fcExport FT_UInt FcFreeTypeCharIndex (FT_Face face, FcChar32 ucs4)
+fcExport FT_UInt FcFreeTypeCharIndex(FT_Face face, FcChar32 ucs4)
 {
   return FT_Get_Char_Index(face, ucs4);
 }
@@ -1594,7 +1597,7 @@ fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)
    * lowers ASCII characters for comparison, so this should be a good
    * and simple replacement.
    */
-  return stricmp(s1, s2);
+  return stricmp((char *)s1, (char *)s2);
 }
 
 /*
@@ -1602,7 +1605,7 @@ fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)
  * Add another reference to p. Patterns are freed only when the reference
  * count reaches zero.
  */
-fcExport void FcPatternReference (FcPattern *p)
+fcExport void FcPatternReference(FcPattern *p)
 {
   if (!p)
     return;
