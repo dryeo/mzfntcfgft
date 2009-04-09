@@ -1623,7 +1623,19 @@ fcExport FcPattern *FcPatternDuplicate(const FcPattern *p)
   FcPattern *pResult = malloc(sizeof(FcPattern));
   if (pResult)
   {
+    /* for a start, copy all entries */
     memcpy(pResult, p, sizeof(FcPattern));
+
+    /* now correct the pointers */
+    if (p->family)
+      pResult->family = strdup(p->family);
+    if (p->style)
+      pResult->style = strdup(p->style);
+
+    /* this is doubtful, but for now set the reference to 1,
+     * so that the duplicate pattern is treated like a new one
+     */
+    pResult->ref = 1;
   }
   return pResult;
 }
