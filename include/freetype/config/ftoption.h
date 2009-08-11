@@ -117,6 +117,27 @@ FT_BEGIN_HEADER
 
   /*************************************************************************/
   /*                                                                       */
+  /* If this macro is defined, do not try to use an assembler version of   */
+  /* performance-critical functions (e.g. FT_MulFix).  You should only do  */
+  /* that to verify that the assembler function works properly, or to      */
+  /* execute benchmark tests of the various implementations.               */
+/* #define FT_CONFIG_OPTION_NO_ASSEMBLER */
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* If this macro is defined, try to use an inlined assembler version of  */
+  /* the `FT_MulFix' function, which is a `hotspot' when loading and       */
+  /* hinting glyphs, and which should be executed as fast as possible.     */
+  /*                                                                       */
+  /* Note that if your compiler or CPU is not supported, this will default */
+  /* to the standard and portable implementation found in `ftcalc.c'.      */
+  /*                                                                       */
+#define FT_CONFIG_OPTION_INLINE_MULFIX
+
+
+  /*************************************************************************/
+  /*                                                                       */
   /* LZW-compressed file support.                                          */
   /*                                                                       */
   /*   FreeType now handles font files that have been compressed with the  */
@@ -212,19 +233,19 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* Glyph Postscript Names handling                                       */
   /*                                                                       */
-  /*   By default, FreeType 2 is compiled with the `PSNames' module.  This */
+  /*   By default, FreeType 2 is compiled with the `psnames' module.  This */
   /*   module is in charge of converting a glyph name string into a        */
   /*   Unicode value, or return a Macintosh standard glyph name for the    */
   /*   use with the TrueType `post' table.                                 */
   /*                                                                       */
-  /*   Undefine this macro if you do not want `PSNames' compiled in your   */
+  /*   Undefine this macro if you do not want `psnames' compiled in your   */
   /*   build of FreeType.  This has the following effects:                 */
   /*                                                                       */
   /*   - The TrueType driver will provide its own set of glyph names,      */
   /*     if you build it to support postscript names in the TrueType       */
   /*     `post' table.                                                     */
   /*                                                                       */
-  /*   - The Type 1 driver will not be able to synthetize a Unicode        */
+  /*   - The Type 1 driver will not be able to synthesize a Unicode        */
   /*     charmap out of the glyphs found in the fonts.                     */
   /*                                                                       */
   /*   You would normally undefine this configuration macro when building  */
@@ -240,12 +261,12 @@ FT_BEGIN_HEADER
   /*   By default, FreeType 2 is built with the `PSNames' module compiled  */
   /*   in.  Among other things, the module is used to convert a glyph name */
   /*   into a Unicode value.  This is especially useful in order to        */
-  /*   synthetize on the fly a Unicode charmap from the CFF/Type 1 driver  */
+  /*   synthesize on the fly a Unicode charmap from the CFF/Type 1 driver  */
   /*   through a big table named the `Adobe Glyph List' (AGL).             */
   /*                                                                       */
   /*   Undefine this macro if you do not want the Adobe Glyph List         */
   /*   compiled in your `PSNames' module.  The Type 1 driver will not be   */
-  /*   able to synthetize a Unicode charmap out of the glyphs found in the */
+  /*   able to synthesize a Unicode charmap out of the glyphs found in the */
   /*   fonts.                                                              */
   /*                                                                       */
 #define FT_CONFIG_OPTION_ADOBE_GLYPH_LIST
@@ -549,11 +570,12 @@ FT_BEGIN_HEADER
 
 
   /*
-   * This variable is defined if either unpatented or native TrueType
+   * This macro is defined if either unpatented or native TrueType
    * hinting is requested by the definitions above.
    */
 #ifdef TT_CONFIG_OPTION_BYTECODE_INTERPRETER
 #define  TT_USE_BYTECODE_INTERPRETER
+#undef TT_CONFIG_OPTION_UNPATENTED_HINTING
 #elif defined TT_CONFIG_OPTION_UNPATENTED_HINTING
 #define  TT_USE_BYTECODE_INTERPRETER
 #endif
