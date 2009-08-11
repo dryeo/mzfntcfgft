@@ -57,6 +57,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 - History
 20090811  - Update to FreeType 2.3.9.
+          - Improve emboldened font display
 20080806  - Implement FcPatternAddFTFace() and FcPatternGetFTFace() to be able
             to build newer post-1.6 cairo and Mozilla from mozilla-central
           - Add FcFreeTypeCharIndex()
