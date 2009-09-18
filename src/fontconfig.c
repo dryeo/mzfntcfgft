@@ -114,7 +114,7 @@ static void ConstructINIKeyName(char *pchDestinationBuffer, unsigned int uiDesti
            "%s\\%04ld", pchFontName, lFaceIndex);
 }
 
-#define LOOKUP_DBCS_NAME_DEBUG
+//#define LOOKUP_DBCS_NAME_DEBUG
 
 static FcBool IsDBCSNameStr(FT_Byte *string, FT_UInt string_len )
 {
@@ -137,15 +137,16 @@ static FcBool IsDBCSNameStr(FT_Byte *string, FT_UInt string_len )
 
 enum {LANG_NONE, LANG_KOR, LANG_JPN, LANG_PRC, LANG_ROC};
 
-static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName, int nNameSize)
+static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
+                             int nNameSize)
 {
-  FT_UInt     nNameCount;
-  FT_UInt     i;
+  FT_UInt nNameCount;
+  FT_UInt i;
   FT_SfntName sfntName;
-  char       *name = NULL;
-  int         name_len = 0;
+  char *name = NULL;
+  int name_len = 0;
   const char *langEnv;
-  int         langCode = LANG_NONE;
+  int langCode = LANG_NONE;
   const char *fromCode = NULL;
 
   nNameCount = FT_Get_Sfnt_Name_Count(ftface);
@@ -171,53 +172,102 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName, int
   {
     FT_Get_Sfnt_Name(ftface, i, &sfntName);
 
-    if (sfntName.name_id == name_id)
+    if (sfntName.name_id == name_id &&
+        sfntName.platform_id == TT_PLATFORM_MICROSOFT &&
+        sfntName.encoding_id == TT_MS_ID_UNICODE_CS)
     {
-      if (sfntName.platform_id == TT_PLATFORM_MICROSOFT &&
-          sfntName.encoding_id == TT_MS_ID_UNICODE_CS)
+      switch (sfntName.language_id)
       {
-        switch (sfntName.language_id)
-        {
-          case TT_MS_LANGID_KOREAN_EXTENDED_WANSUNG_KOREA :
-            if (langCode == LANG_KOR)
-              fromCode = CP_UCS2BE;
-            break;
+        case TT_MS_LANGID_KOREAN_EXTENDED_WANSUNG_KOREA:
+          if (langCode == LANG_KOR)
+            fromCode = CP_UCS2BE;
+          break;
 
-          case TT_MS_LANGID_JAPANESE_JAPAN :
-            if (langCode == LANG_JPN)
-              fromCode = CP_UCS2BE;
-            break;
+        case TT_MS_LANGID_JAPANESE_JAPAN:
+          if (langCode == LANG_JPN)
+            fromCode = CP_UCS2BE;
+          break;
 
-          case TT_MS_LANGID_CHINESE_PRC :
-            if (langCode == LANG_PRC)
-              fromCode = CP_UCS2BE;
-            break;
+        case TT_MS_LANGID_CHINESE_PRC:
+          if (langCode == LANG_PRC)
+            fromCode = CP_UCS2BE;
+          break;
 
-          case TT_MS_LANGID_CHINESE_TAIWAN :
-            if (langCode == LANG_ROC)
-              fromCode = CP_UCS2BE;
-            break;
+        case TT_MS_LANGID_CHINESE_TAIWAN:
+          if (langCode == LANG_ROC)
+            fromCode = CP_UCS2BE;
+          break;
 
-          case TT_MS_LANGID_ENGLISH_UNITED_STATES :
-            if (IsDBCSNameStr(sfntName.string, sfntName.string_len))
+        case TT_MS_LANGID_ENGLISH_UNITED_STATES:
+          if (IsDBCSNameStr(sfntName.string, sfntName.string_len))
+          {
+            switch (langCode)
             {
-              switch (langCode)
-              {
-                case LANG_KOR:
-                case LANG_JPN:
-                case LANG_PRC:
-                case LANG_ROC:
-                  fromCode = CP_UCS2BE;
-                  break;
-              }
+              case LANG_KOR:
+              case LANG_JPN:
+              case LANG_PRC:
+              case LANG_ROC:
+                fromCode = CP_UCS2BE;
+                break;
             }
+          }
+          break;
+      }
+
+      if (fromCode)
+      {
+        name     = sfntName.string;
+        name_len = sfntName.string_len;
+
+        break;
+      }
+    }
+  }
+
+  /* Now try to find a DBCS encoded name */
+  if (!fromCode)
+  {
+    for (i = 0; i < nNameCount; i++)
+    {
+      FT_Get_Sfnt_Name(ftface, i, &sfntName);
+
+      if (sfntName.name_id == name_id &&
+          sfntName.platform_id == TT_PLATFORM_MICROSOFT)
+      {
+        switch (sfntName.encoding_id)
+        {
+          case TT_MS_ID_WANSUNG:
+            if (langCode == LANG_KOR)
+              fromCode = CP_KOR;
             break;
+
+          case TT_MS_ID_SJIS:
+            if (langCode == LANG_JPN)
+              fromCode = CP_JPN;
+            break;
+
+          case TT_MS_ID_GB2312:
+            if (langCode == LANG_PRC)
+              fromCode = CP_PRC;
+            break;
+
+          case TT_MS_ID_BIG_5:
+            if (langCode == LANG_ROC)
+              fromCode = CP_ROC;
+            break;
+
         }
 
         if (fromCode)
         {
-          name     = sfntName.string;
-          name_len = sfntName.string_len;
+          int j;
+
+          name = alloca(sfntName.string_len);
+
+          /* It's a DBCS string, copy everything except NULLs */
+          for (j = 0, name_len = 0; j < sfntName.string_len; j++)
+            if (sfntName.string[j])
+              name[name_len++] = sfntName.string[j];
 
           break;
         }
@@ -227,70 +277,13 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName, int
 
   if (!fromCode)
   {
-    /* Now try to find a DBCS encoded name */
-    for (i = 0; i < nNameCount; i++)
-    {
-      FT_Get_Sfnt_Name(ftface, i, &sfntName);
+    iconv_t cd = iconv_open(CP_UTF8, fromCode);
+    const char *inbuf = name;
+    char *outbuf = pName;
+    size_t inleft = name_len,
+           outleft = nNameSize - 1;
 
-      if (sfntName.name_id == name_id)
-      {
-        if (sfntName.platform_id == TT_PLATFORM_MICROSOFT)
-        {
-          switch (sfntName.encoding_id)
-          {
-            case TT_MS_ID_WANSUNG :
-              if (langCode == LANG_KOR)
-                fromCode = CP_KOR;
-              break;
-
-            case TT_MS_ID_SJIS :
-              if (langCode == LANG_JPN)
-                fromCode = CP_JPN;
-              break;
-
-            case TT_MS_ID_GB2312 :
-              if (langCode == LANG_PRC)
-                fromCode = CP_PRC;
-              break;
-
-            case TT_MS_ID_BIG_5 :
-              if (langCode == LANG_ROC)
-                fromCode = CP_ROC;
-              break;
-
-          }
-
-          if (fromCode)
-          {
-            int       j;
-
-            name = alloca(sfntName.string_len);
-
-            /* It's a DBCS string, copy everything except NULLs */
-            for (j = 0, name_len = 0; j < sfntName.string_len; j++)
-              if (sfntName.string[j])
-                name[name_len++] = sfntName.string[j];
-
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  if (fromCode)
-  {
-    iconv_t   cd;
-    char     *inbuf, *outbuf;
-    size_t    inleft, outleft;
-
-    cd = iconv_open(CP_UTF8, fromCode);
-
-    inbuf   = name;
-    inleft  = name_len;
-    outbuf  = pName;
-    outleft = nNameSize - 1;
-    iconv(cd, (const char **)&inbuf, &inleft, &outbuf, &outleft);
+    iconv(cd, &inbuf, &inleft, &outbuf, &outleft);
     *outbuf = 0;
 
     iconv_close(cd);
@@ -301,7 +294,6 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName, int
 #ifdef LOOKUP_DBCS_NAME_DEBUG
   printf("Appropriate DBCS name not found!!!\n");
 #endif
-
   return FcFalse;
 }
 
