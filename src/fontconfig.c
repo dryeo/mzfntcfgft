@@ -60,6 +60,7 @@ struct _FcPattern
     FcBool verticallayout;
     int hintstyle;
     FcBool autohint;
+    FcBool bitmap;
     int rgba;
     double size;
     char *style;
@@ -608,6 +609,7 @@ fcExport FcPattern *FcPatternCreate(void)
   pResult->embolden = FcFalse; // no emboldening by default
   pResult->verticallayout = FcFalse; // horizontal layout by default
   pResult->autohint = FcFalse; // off by default as recommended in fontconfig.h
+  pResult->bitmap = FcTrue; // default to using embedded bitmaps
   /* set the strings to NULL for easy testing */
   pResult->family = NULL;
   pResult->style = NULL;
@@ -735,6 +737,10 @@ fcExport FcResult FcPatternGetString(const FcPattern *p, const char *object, int
   return FcResultNoMatch;
 }
 
+#ifndef FC_EMBEDDED_BITMAP
+#define FC_EMBEDDED_BITMAP "embeddedbitmap"
+#endif
+
 fcExport FcResult FcPatternGetBool(const FcPattern *p, const char *object, int id, FcBool *b)
 {
   if (!p)
@@ -766,6 +772,11 @@ fcExport FcResult FcPatternGetBool(const FcPattern *p, const char *object, int i
   if (strcmp(object, FC_AUTOHINT)==0)
   {
     *b = p->autohint;
+    return FcResultMatch;
+  }
+  if (strcmp(object, FC_EMBEDDED_BITMAP)==0)
+  {
+    *b = p->bitmap;
     return FcResultMatch;
   }
   return FcResultNoMatch;
@@ -920,6 +931,11 @@ fcExport FcBool FcPatternAddBool(FcPattern *p, const char *object, FcBool b)
   if (strcmp(object, FC_AUTOHINT)==0)
   {
     p->autohint = b;
+    return FcTrue;
+  }
+  if (strcmp(object, FC_EMBEDDED_BITMAP)==0)
+  {
+    p->bitmap = b;
     return FcTrue;
   }
 
@@ -1493,7 +1509,8 @@ fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
       pa->antialias != pb->antialias ||
       pa->embolden != pb->embolden ||
       pa->verticallayout != pb->verticallayout ||
-      pa->autohint != pb->autohint)
+      pa->autohint != pb->autohint ||
+      pa->bitmap != pb->bitmap)
   {
     return FcFalse;
   }
