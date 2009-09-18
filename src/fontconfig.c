@@ -275,7 +275,7 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
     }
   }
 
-  if (!fromCode)
+  if (fromCode)
   {
     iconv_t cd = iconv_open(CP_UTF8, fromCode);
     const char *inbuf = name;
