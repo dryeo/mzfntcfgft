@@ -137,8 +137,15 @@ static FcBool IsDBCSNameStr(FT_Byte *string, FT_UInt string_len )
 
 enum {LANG_NONE, LANG_KOR, LANG_JPN, LANG_PRC, LANG_ROC};
 
+/*
+ * Set a font string property (most likely the font family name) based on the
+ * encoded font information in the font tables; use the current locale (LANG)
+ * to determine the appropriate string.
+ * If |force| is set, use the first string found; this is useful for the case
+ * where the default ASCII string would be empty of contain rubbish.
+ */
 static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
-                             int nNameSize)
+                             int nNameSize, FcBool force)
 {
   FT_UInt nNameCount;
   FT_UInt i;
@@ -179,22 +186,22 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
       switch (sfntName.language_id)
       {
         case TT_MS_LANGID_KOREAN_EXTENDED_WANSUNG_KOREA:
-          if (langCode == LANG_KOR)
+          if (force || langCode == LANG_KOR)
             fromCode = CP_UCS2BE;
           break;
 
         case TT_MS_LANGID_JAPANESE_JAPAN:
-          if (langCode == LANG_JPN)
+          if (force || langCode == LANG_JPN)
             fromCode = CP_UCS2BE;
           break;
 
         case TT_MS_LANGID_CHINESE_PRC:
-          if (langCode == LANG_PRC)
+          if (force || langCode == LANG_PRC)
             fromCode = CP_UCS2BE;
           break;
 
         case TT_MS_LANGID_CHINESE_TAIWAN:
-          if (langCode == LANG_ROC)
+          if (force || langCode == LANG_ROC)
             fromCode = CP_UCS2BE;
           break;
 
@@ -209,6 +216,11 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
               case LANG_ROC:
                 fromCode = CP_UCS2BE;
                 break;
+              default:
+#ifdef LOOKUP_DBCS_NAME_DEBUG
+                printf("default case for TT_MS_LANGID_ENGLISH_UNITED_STATES with DBCS name!\n");
+#endif
+                fromCode = CP_UCS2BE;
             }
           }
           break;
@@ -237,22 +249,22 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
         switch (sfntName.encoding_id)
         {
           case TT_MS_ID_WANSUNG:
-            if (langCode == LANG_KOR)
+            if (force || langCode == LANG_KOR)
               fromCode = CP_KOR;
             break;
 
           case TT_MS_ID_SJIS:
-            if (langCode == LANG_JPN)
+            if (force || langCode == LANG_JPN)
               fromCode = CP_JPN;
             break;
 
           case TT_MS_ID_GB2312:
-            if (langCode == LANG_PRC)
+            if (force || langCode == LANG_PRC)
               fromCode = CP_PRC;
             break;
 
           case TT_MS_ID_BIG_5:
-            if (langCode == LANG_ROC)
+            if (force || langCode == LANG_ROC)
               fromCode = CP_ROC;
             break;
 
@@ -324,16 +336,23 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
   }
 
   if (!LookupDBCSName(ftface, TT_NAME_ID_FONT_FAMILY, pFontCache->achFamilyName,
-                      sizeof(pFontCache->achFamilyName)))
+                      sizeof(pFontCache->achFamilyName), FcFalse))
   {
-    if (ftface->family_name)
-      strncpy(pFontCache->achFamilyName,
-              ftface->family_name,
+    /* some broken fonts by default get family names that are made up of
+     * question marks */
+    if (ftface->family_name && ftface->family_name[0] != '?')
+    {
+      strncpy(pFontCache->achFamilyName, ftface->family_name,
               sizeof(pFontCache->achFamilyName));
+    }
     else
-      memset(pFontCache->achFamilyName,
-             0,
-             sizeof(pFontCache->achFamilyName));
+    {
+#ifdef LOOKUP_DBCS_NAME_DEBUG
+      printf("no useful achFamilyName (%s), force it!\n", ftface->family_name);
+#endif
+      LookupDBCSName(ftface, TT_NAME_ID_FONT_FAMILY, pFontCache->achFamilyName,
+                     sizeof(pFontCache->achFamilyName), FcTrue);
+    }
   }
 
 #ifdef LOOKUP_DBCS_NAME_DEBUG
@@ -341,13 +360,15 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
 #endif
 
   if (ftface->style_name)
-    strncpy(pFontCache->achStyleName,
-            ftface->style_name,
+  {
+    strncpy(pFontCache->achStyleName, ftface->style_name,
             sizeof(pFontCache->achStyleName));
+  }
   else
-    memset(pFontCache->achStyleName,
-           0,
-           sizeof(pFontCache->achStyleName));
+  {
+    /* if we don't know any better, use "Regular" as style name */
+    strcpy(pFontCache->achStyleName, "Regular");
+  }
 
 #ifdef LOOKUP_DBCS_NAME_DEBUG
   printf("achStyleName = %s\n", pFontCache->achStyleName);
