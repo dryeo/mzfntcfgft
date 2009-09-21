@@ -158,6 +158,7 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
 
   nNameCount = FT_Get_Sfnt_Name_Count(ftface);
 
+  // shortcut for Postscript fonts
   if (nNameCount == 0)
     return FcFalse;
 
@@ -172,6 +173,15 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
       langCode = LANG_PRC;
     else if (!stricmp(langEnv, "zh_TW"))
       langCode = LANG_ROC;
+  }
+
+  // shortcut for English/Western systems
+  if (!force && (langCode == LANG_NONE || !langEnv))
+  {
+#ifdef LOOKUP_DBCS_NAME_DEBUG
+    printf("no interest in DBCS (LANG=%s)\n", langEnv);
+#endif
+    return FcFalse;
   }
 
   /* First try to find an unicode encoded name */
