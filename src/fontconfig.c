@@ -1253,11 +1253,32 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
       {
         // Looking for a BOLD font
         bWeightOk = (stristr(pFont->achStyleName, "BOLD")!=NULL);
+        // - If BOLD not found in the name, try checking other standard
+        //   names for heavier weights  [ALT 20100827]
+        if (!bWeightOk)
+           bWeightOk = (stristr(pFont->achStyleName, "HEAVY")!=NULL);
+        if (!bWeightOk)
+           bWeightOk = (stristr(pFont->achStyleName, "BLACK")!=NULL);
+      } else if ( p->weight < FC_WEIGHT_BOOK )
+      {
+        // Looking for a LIGHT font
+        bWeightOk = (stristr(pFont->achStyleName, "LIGHT")!=NULL);
+        // - If LIGHT not found in the name, try checking other standard
+        // names for lighter weights  [ALT 20100827]
+        if (!bWeightOk)
+           bWeightOk = (stristr(pFont->achStyleName, "THIN")!=NULL);
+        if (!bWeightOk)
+           bWeightOk = (stristr(pFont->achStyleName, "HAIRLINE")!=NULL);
       } else
       {
-        // Looking for a non-bold (normal) font
-        bWeightOk = (stristr(pFont->achStyleName, "BOLD")==NULL);
-      }
+        //Looking for a non-bold, non-light (normal) font  [ALT 20100827]
+        bWeightOk = ((stristr(pFont->achStyleName, "HAIRLINE")==NULL) &&
+                     (stristr(pFont->achStyleName, "THIN")==NULL)     &&
+                     (stristr(pFont->achStyleName, "LIGHT")==NULL)    &&
+                     (stristr(pFont->achStyleName, "BOLD")==NULL)     &&
+                     (stristr(pFont->achStyleName, "HEAVY")==NULL)    &&
+                     (stristr(pFont->achStyleName, "BLACK")==NULL));
+      } 
 
       if ( p->slant > FC_SLANT_ROMAN )
       {
