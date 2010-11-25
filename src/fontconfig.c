@@ -114,18 +114,7 @@ static void ConstructINIKeyName(char *pchDestinationBuffer, unsigned int uiDesti
            "%s\\%04ld", pchFontName, lFaceIndex);
 }
 
-//#define LOOKUP_DBCS_NAME_DEBUG
-
-static FcBool IsDBCSNameStr(FT_Byte *string, FT_UInt string_len )
-{
-    int i;
-
-    for (i = 0; i < string_len; i += 2)
-      if (string[i])
-        return FcTrue;
-
-    return FcFalse;
-}
+//#define LOOKUP_SFNT_NAME_DEBUG
 
 #define CP_UCS2BE   "UCS-2BE"   /* UCS-2BE */
 #define CP_UTF8     "UTF-8"     /* UTF-8   */
@@ -135,17 +124,17 @@ static FcBool IsDBCSNameStr(FT_Byte *string, FT_UInt string_len )
 #define CP_PRC      "IBM-1381"  /* GB2312  */
 #define CP_ROC      "IBM-950"   /* Big5    */
 
+#define CP_SYSTEM   ""          /* System  */
+
 enum {LANG_NONE, LANG_KOR, LANG_JPN, LANG_PRC, LANG_ROC};
 
 /*
  * Set a font string property (most likely the font family name) based on the
  * encoded font information in the font tables; use the current locale (LANG)
  * to determine the appropriate string.
- * If |force| is set, use the first string found; this is useful for the case
- * where the default ASCII string would be empty of contain rubbish.
  */
-static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
-                             int nNameSize, FcBool force)
+static FcBool LookupSfntName(FT_Face ftface, FT_UShort name_id, char *pName,
+                             int nNameSize)
 {
   FT_UInt nNameCount;
   FT_UInt i;
@@ -155,6 +144,8 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
   const char *langEnv;
   int langCode = LANG_NONE;
   const char *fromCode = NULL;
+  int found;
+  int best;
 
   nNameCount = FT_Get_Sfnt_Name_Count(ftface);
 
@@ -165,135 +156,170 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
   langEnv = getenv("LANG");
   if (langEnv)
   {
-    if (!stricmp(langEnv, "ko_KR"))
+    if (!strnicmp(langEnv, "ko_KR", 5))
       langCode = LANG_KOR;
-    else if (!stricmp(langEnv, "ja_JP"))
+    else if (!strnicmp(langEnv, "ja_JP", 5))
       langCode = LANG_JPN;
-    else if (!stricmp(langEnv, "zh_CN"))
+    else if (!strnicmp(langEnv, "zh_CN", 5))
       langCode = LANG_PRC;
-    else if (!stricmp(langEnv, "zh_TW"))
+    else if (!strnicmp(langEnv, "zh_TW", 5))
       langCode = LANG_ROC;
   }
 
-  // shortcut for English/Western systems
-  if (!force && (langCode == LANG_NONE || !langEnv))
-  {
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-    printf("no interest in DBCS (LANG=%s)\n", langEnv);
-#endif
-    return FcFalse;
-  }
+  found = -1;
+  best  = -1;
 
   /* First try to find an unicode encoded name */
-  for (i = 0; i < nNameCount; i++)
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+  printf("Try to find the unicode name matching to the locale.\n");
+#endif
+  for (i = 0; found == -1 && i < nNameCount; i++)
   {
     FT_Get_Sfnt_Name(ftface, i, &sfntName);
 
-    if (sfntName.name_id == name_id &&
+    if (sfntName.name_id     == name_id &&
         sfntName.platform_id == TT_PLATFORM_MICROSOFT &&
         sfntName.encoding_id == TT_MS_ID_UNICODE_CS)
     {
+      if (best == -1 || sfntName.language_id == TT_MS_LANGID_ENGLISH_UNITED_STATES)
+        best = i;
+
       switch (sfntName.language_id)
       {
         case TT_MS_LANGID_KOREAN_EXTENDED_WANSUNG_KOREA:
-          if (force || langCode == LANG_KOR)
-            fromCode = CP_UCS2BE;
+          if (langCode == LANG_KOR)
+            found = i;
           break;
 
         case TT_MS_LANGID_JAPANESE_JAPAN:
-          if (force || langCode == LANG_JPN)
-            fromCode = CP_UCS2BE;
+          if (langCode == LANG_JPN)
+            found = i;
           break;
 
         case TT_MS_LANGID_CHINESE_PRC:
-          if (force || langCode == LANG_PRC)
-            fromCode = CP_UCS2BE;
+          if (langCode == LANG_PRC)
+            found = i;
           break;
 
         case TT_MS_LANGID_CHINESE_TAIWAN:
-          if (force || langCode == LANG_ROC)
-            fromCode = CP_UCS2BE;
+          if (langCode == LANG_ROC)
+            found = i;
           break;
-
-        case TT_MS_LANGID_ENGLISH_UNITED_STATES:
-          if (IsDBCSNameStr(sfntName.string, sfntName.string_len))
-          {
-            switch (langCode)
-            {
-              case LANG_KOR:
-              case LANG_JPN:
-              case LANG_PRC:
-              case LANG_ROC:
-                fromCode = CP_UCS2BE;
-                break;
-              default:
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-                printf("default case for TT_MS_LANGID_ENGLISH_UNITED_STATES with DBCS name!\n");
-#endif
-                fromCode = CP_UCS2BE;
-            }
-          }
-          break;
-      }
-
-      if (fromCode)
-      {
-        name     = sfntName.string;
-        name_len = sfntName.string_len;
-
-        break;
       }
     }
   }
 
-  /* Now try to find a DBCS encoded name */
-  if (!fromCode)
+  if (found == -1)
   {
-    for (i = 0; i < nNameCount; i++)
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+    printf("Failed to find the unicode name matching to the locale.\n");
+    printf("Try to guess the best one.\n");
+#endif
+    found = best;
+  }
+
+  if (found != -1)
+  {
+    FT_Get_Sfnt_Name(ftface, found, &sfntName);
+
+    name     = sfntName.string;
+    name_len = sfntName.string_len;
+
+    fromCode = CP_UCS2BE;
+  }
+  else
+  {
+    found = -1;
+    best  = -1;
+
+    /* Now try to find a NLS encoded name */
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+    printf("The unicode name is not available, try to find the NLS name.\n");
+#endif
+    for (i = 0; found == -1 && i < nNameCount; i++)
     {
       FT_Get_Sfnt_Name(ftface, i, &sfntName);
 
-      if (sfntName.name_id == name_id &&
+      if (sfntName.name_id     == name_id &&
           sfntName.platform_id == TT_PLATFORM_MICROSOFT)
       {
+        if (best == -1)
+          best = i;
+
         switch (sfntName.encoding_id)
         {
           case TT_MS_ID_WANSUNG:
-            if (force || langCode == LANG_KOR)
-              fromCode = CP_KOR;
+            if (langCode == LANG_KOR)
+              found = i;
             break;
 
           case TT_MS_ID_SJIS:
-            if (force || langCode == LANG_JPN)
-              fromCode = CP_JPN;
+            if (langCode == LANG_JPN)
+              found = i;
             break;
 
           case TT_MS_ID_GB2312:
-            if (force || langCode == LANG_PRC)
-              fromCode = CP_PRC;
+            if (langCode == LANG_PRC)
+              found = i;
             break;
 
           case TT_MS_ID_BIG_5:
-            if (force || langCode == LANG_ROC)
-              fromCode = CP_ROC;
+            if (langCode == LANG_ROC)
+              found = i;
             break;
 
-        }
-
-        if (fromCode)
-        {
-          int j;
-
-          name = alloca(sfntName.string_len);
-
-          /* It's a DBCS string, copy everything except NULLs */
-          for (j = 0, name_len = 0; j < sfntName.string_len; j++)
-            if (sfntName.string[j])
-              name[name_len++] = sfntName.string[j];
-
-          break;
+          case TT_MS_ID_SYMBOL_CS :
+            found = i;
+            break;
         }
       }
+    }
+
+    if (found == -1)
+    {
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+    printf("Failed to find the NLS encoded name matching to the locale.\n");
+    printf("Try to guess the best one.\n");
+#endif
+      found = best;
+    }
+
+    if (found != -1)
+    {
+      int j;
+
+      FT_Get_Sfnt_Name(ftface, found, &sfntName);
+
+      switch (sfntName.encoding_id)
+      {
+        case TT_MS_ID_WANSUNG:
+          fromCode = CP_KOR;
+          break;
+
+        case TT_MS_ID_SJIS:
+          fromCode = CP_JPN;
+          break;
+
+        case TT_MS_ID_GB2312:
+          fromCode = CP_PRC;
+          break;
+
+        case TT_MS_ID_BIG_5:
+          fromCode = CP_ROC;
+          break;
+
+        case TT_MS_ID_SYMBOL_CS :
+        default :
+          fromCode = CP_SYSTEM;
+          break;
+      }
+
+      name = alloca(sfntName.string_len);
+      name_len = 0;
+
+      for (j = 0, name_len = 0; j < sfntName.string_len; j++)
+        if (sfntName.string[j])
+          name[name_len++] = sfntName.string[j];
     }
   }
 
@@ -313,8 +339,8 @@ static FcBool LookupDBCSName(FT_Face ftface, FT_UShort name_id, char *pName,
     return FcTrue;
   }
 
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-  printf("Appropriate DBCS name not found!!!\n");
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+  printf("Sfnt name not found!!!\n");
 #endif
   return FcFalse;
 }
@@ -326,8 +352,8 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
   char achKeyName[128];
   ULONG ulSize;
 
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-  printf("FontFileName = %s, lFaceIndex = %ld\n", pchFontFileName, lFaceIndex);
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+  printf("FontFileName = [%s], lFaceIndex = %ld\n", pchFontFileName, lFaceIndex);
 #endif
 
   if (FT_New_Face(hFtLib, pchFontFileName, lFaceIndex, &ftface))
@@ -345,28 +371,21 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
     return 0;
   }
 
-  if (!LookupDBCSName(ftface, TT_NAME_ID_FONT_FAMILY, pFontCache->achFamilyName,
-                      sizeof(pFontCache->achFamilyName), FcFalse))
+  if (!LookupSfntName(ftface, TT_NAME_ID_FONT_FAMILY, pFontCache->achFamilyName,
+                      sizeof(pFontCache->achFamilyName)))
   {
-    /* some broken fonts by default get family names that are made up of
-     * question marks */
-    if (ftface->family_name && ftface->family_name[0] != '?')
+    if (!ftface->family_name)
     {
-      strncpy(pFontCache->achFamilyName, ftface->family_name,
-              sizeof(pFontCache->achFamilyName));
+      /* Could not get the family name */
+      return 0;
     }
-    else
-    {
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-      printf("no useful achFamilyName (%s), force it!\n", ftface->family_name);
-#endif
-      LookupDBCSName(ftface, TT_NAME_ID_FONT_FAMILY, pFontCache->achFamilyName,
-                     sizeof(pFontCache->achFamilyName), FcTrue);
-    }
+
+    strncpy(pFontCache->achFamilyName, ftface->family_name,
+            sizeof(pFontCache->achFamilyName));
   }
 
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-  printf("achFamilyName = %s\n", pFontCache->achFamilyName);
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+  printf("achFamilyName = [%s]\n", pFontCache->achFamilyName);
 #endif
 
   if (ftface->style_name)
@@ -380,8 +399,8 @@ static int CreateCache(FontDescriptionCache_p pFontCache, char *pchFontName,
     strcpy(pFontCache->achStyleName, "Regular");
   }
 
-#ifdef LOOKUP_DBCS_NAME_DEBUG
-  printf("achStyleName = %s\n", pFontCache->achStyleName);
+#ifdef LOOKUP_SFNT_NAME_DEBUG
+  printf("achStyleName = [%s]\n", pFontCache->achStyleName);
 #endif
 
   pFontCache->lFontIndex = lFaceIndex;
