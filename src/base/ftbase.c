@@ -20,7 +20,7 @@
 
 #define  FT_MAKE_OPTION_SINGLE_OBJECT
 
-/* DRY #include "ftpic.c" */
+#include "ftpic.c"
 #include "basepic.c"
 #include "ftadvanc.c"
 #include "ftcalc.c"

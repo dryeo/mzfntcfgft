@@ -691,9 +691,7 @@
       LOAD_( os2 );
       if ( error )
       {
-        if ( error != SFNT_Err_Table_Missing )
-          goto Exit;
-
+        /* we treat the table as missing if there are any errors */
         face->os2.version = 0xFFFFU;
       }
     }
@@ -748,7 +746,7 @@
 #endif
         GET_NAME( FONT_FAMILY, &face->root.family_name );
 
-#ifndef __OS2__ /* PmW: don't use teh preferred properties on OS/2 */
+#ifndef __OS2__ /* PmW: don't use the preferred properties on OS/2 */
       if ( !ignore_preferred_subfamily )
         GET_NAME( PREFERRED_SUBFAMILY, &face->root.style_name );
       if ( !face->root.style_name )
