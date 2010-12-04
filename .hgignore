@@ -5,7 +5,10 @@ syntax: glob
 *.o
 lib/*.lib
 src/*.lib
+lib/*.a
+src/*.a
 src/fontconfig_*
+bin/freetype-config
 syntax: regexp
 \.swp$
 \.swo$
