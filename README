@@ -36,7 +36,7 @@ of the packages
                         me in collaboration with Doodle)
    fontconfig-2.3.2-os2 (only the header files of the original Fontconfig package)
 Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
-   freetype-2.3.9.tar.bz2 (from http://sourceforge.net/projects/freetype/files/freetype2/2.3.9/)
+   freetype-2.4.4.tar.bz2 (from http://sourceforge.net/projects/freetype/files/freetype2/2.3.9/)
 Differences from the default sources of FreeType are marked with "PmW".
 
 
@@ -56,6 +56,11 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20101204  - Misc fixes. Thanks to Rich Walsh for some of these.
+20101203  - Update to Freetyoe 2.4.4
+20101125  - Update to Freetype 2.4.3
+20101125  - DBCS fixes and Wingdings and Symbol font fixes. Patch by KO Myung-Hun
+20101122  - Add more font faces and misc font faces fixes. Patch by Alex Taylor
 20090811  - Update to FreeType 2.3.9.
           - Improve emboldened font display
 20080806  - Implement FcPatternAddFTFace() and FcPatternGetFTFace() to be able
