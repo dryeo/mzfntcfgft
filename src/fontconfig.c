@@ -19,6 +19,7 @@
 #include <os2.h>
 #include <fontconfig/fontconfig.h>
 #include <fontconfig/fcfreetype.h>
+#include <fontconfig/fcprivate.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -37,7 +38,7 @@
 # define fcExport
 #endif
 
-//#define FONTCONFIG_DEBUG_PRINTF
+// #define FONTCONFIG_DEBUG_PRINTF
 
 /* structure for the font cache in OS2.INI  */
 typedef struct FontDescriptionCache_s
@@ -70,6 +71,7 @@ struct _FcPattern
     char *style;
     FT_Face face;
     int ref;
+    char *lang;
 
     FontDescriptionCache_p pFontDesc;
 };
@@ -114,7 +116,7 @@ static void ConstructINIKeyName(char *pchDestinationBuffer, unsigned int uiDesti
            "%s\\%04ld", pchFontName, lFaceIndex);
 }
 
-//#define LOOKUP_SFNT_NAME_DEBUG
+// #define LOOKUP_SFNT_NAME_DEBUG
 
 #define CP_UCS2BE   "UCS-2BE"   /* UCS-2BE */
 #define CP_UTF8     "UTF-8"     /* UTF-8   */
@@ -222,7 +224,7 @@ static FcBool LookupSfntName(FT_Face ftface, FT_UShort name_id, char *pName,
   {
     FT_Get_Sfnt_Name(ftface, found, &sfntName);
 
-    name     = sfntName.string;
+    name     = (char*)sfntName.string;
     name_len = sfntName.string_len;
 
     fromCode = CP_UCS2BE;
@@ -866,6 +868,7 @@ fcExport FcPattern *FcPatternCreate(void)
   /* set the strings to NULL for easy testing */
   pResult->family = NULL;
   pResult->style = NULL;
+  pResult->lang = NULL;
   pResult->ref = 1;
   return pResult;
 }
@@ -881,6 +884,8 @@ fcExport void FcPatternDestroy(FcPattern *p)
     free(p->family);
   if (p->style)
     free(p->style);
+  if (p->lang)
+    free(p->lang);
   free(p);
 }
 
@@ -1153,6 +1158,16 @@ fcExport FcBool FcPatternAddString(FcPattern *p, const char *object, const FcCha
     return FcTrue;
   }
 
+  if (strcmp(object, FC_LANG)==0)
+  {
+    if (p->lang)
+    {
+      free(p->lang); p->lang = NULL;
+    }
+    p->lang = strdup((const char *)s);
+    return FcTrue;
+  }
+
   return FcFalse;
 }
 
@@ -1228,8 +1243,11 @@ fcExport FcResult FcPatternGetFTFace(const FcPattern *p, const char *object, int
 
 
 #define DEFAULT_SERIF_FONT          "Times New Roman"
+#define DEFAULT_SERIF_FONTJA        "Times New Roman WT J"
 #define DEFAULT_SANSSERIF_FONT      "Helvetica"
 #define DEFAULT_MONOSPACED_FONT     "Courier"
+#define DEFAULT_SYMBOL_FONT         "Symbol Set"
+#define DEFAULT_DINGBATS_FONT       "DejaVu Sans"
 
 fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result)
 {
@@ -1374,6 +1392,17 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
       strcpy(achKeySpace, achKey);
       strcat(achKeySpace, " ");
     }
+    else if ((p->family) && (stricmp( p->family, "OPENSYMBOL" ) == 0 ))
+    {
+      strncpy(achKey, DEFAULT_SYMBOL_FONT, sizeof(achKey));
+    }
+    else if (
+        (p->family) &&
+        ((stricmp( p->family, "ZAPFDINGBATS" ) == 0 ) ||
+         (stricmp( p->family, "ZAPF DINGBATS" ) == 0 )))
+    {
+      strncpy(achKey, DEFAULT_DINGBATS_FONT, sizeof(achKey));
+    }
 
     pFont = pFontDescriptionCacheHead;
     pBestMatch = NULL;
@@ -1491,7 +1520,6 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
   // Use the one if we've found something
   if (pBestMatch)
     pFont = pBestMatch;
-
 
   if (pFont)
   {
@@ -1679,16 +1707,40 @@ fcExport FcFontSet *FcFontList(FcConfig *config, FcPattern *p, FcObjectSet *os)
   return result;
 }
 
-fcExport FcFontSet *FcFontSort(FcConfig *config, FcPattern *p, FcBool trim, FcCharSet **csp, FcResult *result)
+fcExport FcFontSet *FcFontSort(FcConfig *config, FcPattern *p, FcBool trim,
+                               FcCharSet **csp, FcResult *result)
 {
-  // This is a stub.
-
-  // I currently have no idea what kind of sorting to do here,
-  // what would be the best for Mozilla, so I simply won't sort it. :)
-  // Use the same code as for FcFontList().
+  // Enhanced for poppler usage.  According to docs fcfontsort brings back
+  // the fonts matching the pattern, so we use FcFontMatch  if FcFontMatch
+  // has no font found we try the default ones
 
   *result = FcResultMatch;
-  return FcFontList(config, p, NULL);
+  FcFontSet *fs = FcFontSetCreate();
+
+  if (!p)
+    return fs;
+
+  FcPattern *newPattern = FcFontMatch(config, p, result);
+  if (!newPattern)
+  {
+     FcPattern *pDup = FcPatternDuplicate(p);
+     if (p->lang && (stristr(p->lang, "JA") != NULL))
+        {
+           FcPatternAddString(pDup, FC_FAMILY, (const FcChar8 *)DEFAULT_SERIF_FONTJA);
+        }
+        else
+        {
+           FcPatternAddString(pDup, FC_FAMILY, (const FcChar8 *)DEFAULT_SERIF_FONT);
+        }
+     newPattern = FcFontMatch(config, pDup, result);
+     FcPatternDestroy(pDup);
+  }
+
+  if (newPattern && fs)
+  {
+    FcFontSetAdd(fs, newPattern);
+  }
+  return fs;
 }
 
 /* Constructs a pattern representing the 'id'th font in 'file'. *
@@ -1923,6 +1975,8 @@ fcExport FcPattern *FcPatternDuplicate(const FcPattern *p)
       pResult->family = strdup(p->family);
     if (p->style)
       pResult->style = strdup(p->style);
+    if (p->lang)
+      pResult->lang = strdup(p->lang);
 
     /* this is doubtful, but for now set the reference to 1,
      * so that the duplicate pattern is treated like a new one
@@ -1930,4 +1984,49 @@ fcExport FcPattern *FcPatternDuplicate(const FcPattern *p)
     pResult->ref = 1;
   }
   return pResult;
+}
+
+fcExport FcPattern *FcPatternBuild (FcPattern *p, ...)
+{
+  va_list  va;
+
+  // according to fontconfig FcInit() is not needed in a app, so make sure its called
+  if (!pConfig)
+  {
+    FcInit();
+  }
+
+  va_start (va, p);
+  FcPatternVapBuild (p, p, va);
+  va_end (va);
+  return p;
+}
+
+fcExport FcBool FcPatternAdd (FcPattern *p, const char *object,
+                              FcValue value, FcBool append)
+{
+  FcBool rc = FcTrue;
+
+  switch (value.type)
+  {
+    case FcTypeInteger:
+      rc = FcPatternAddInteger(p,  object, value.u.i);
+      break;
+    case FcTypeDouble:
+      rc = FcPatternAddDouble(p,  object, value.u.d);
+      break;
+    case FcTypeString:
+      rc = FcPatternAddString(p,  object, value.u.s);
+      break;
+    case FcTypeBool:
+      rc = FcPatternAddBool(p,  object, value.u.b);
+      break;
+    case FcTypeFTFace:
+      rc = FcPatternAddFTFace(p,  object, value.u.f);
+      break;
+    default:
+      break;
+  }
+
+  return rc;
 }
