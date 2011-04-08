@@ -1,8 +1,14 @@
 /*
  * This code is (C) Netlabs.org
- * Author: Doodle <doodle@netlabs.org>
- *         Peter Weilbacher <mozilla@weilbacher.org>
- *         KO Myung-Hun
+ * Authors:
+ *    Doodle <doodle@netlabs.org>
+ *    Peter Weilbacher <mozilla@weilbacher.org>
+ *
+ * Contributors:
+ *    KO Myung-Hun
+ *    Alex Taylor <alex@altsan.org>
+ *    Rich Walsh <rich@e-vertise.com>
+ *    Silvan Scherrer <silvan.scherrer@aroa.ch>
  *
  */
 
