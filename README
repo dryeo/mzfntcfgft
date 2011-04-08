@@ -56,6 +56,8 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20110407  - Updates for Poppler, add (Japanese) language support, add additional fonts. Patch from Silvan Scherrer
+20110407  - Bug fix from Rich Walsh
 20101204  - Misc fixes. Thanks to Rich Walsh for some of these.
 20101203  - Update to Freetyoe 2.4.4
 20101125  - Update to Freetype 2.4.3
