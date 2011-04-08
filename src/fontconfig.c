@@ -1370,7 +1370,8 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
       strncpy(achKey, DEFAULT_SERIF_FONT, sizeof(achKey));
       // we want to match Times New Roman which has an additional trailing
       // space in the name...
-      achKeySpace = strdup(achKey);
+      achKeySpace = malloc(strlen(achKey) + 2);
+      strcpy(achKeySpace, achKey);
       strcat(achKeySpace, " ");
     }
 
