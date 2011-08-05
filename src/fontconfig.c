@@ -2036,3 +2036,33 @@ fcExport FcBool FcPatternAdd (FcPattern *p, const char *object,
 
   return rc;
 }
+
+fcExport FcBool FcPatternAddWeak (FcPattern *p, const char *object,
+                              FcValue value, FcBool append)
+{
+  FcBool rc = FcTrue;
+
+  switch (value.type)
+  {
+    case FcTypeInteger:
+      rc = FcPatternAddInteger(p,  object, value.u.i);
+      break;
+    case FcTypeDouble:
+      rc = FcPatternAddDouble(p,  object, value.u.d);
+      break;
+    case FcTypeString:
+      rc = FcPatternAddString(p,  object, value.u.s);
+      break;
+    case FcTypeBool:
+      rc = FcPatternAddBool(p,  object, value.u.b);
+      break;
+    case FcTypeFTFace:
+      rc = FcPatternAddFTFace(p,  object, value.u.f);
+      break;
+    default:
+      break;
+  }
+
+  return rc;
+}
+

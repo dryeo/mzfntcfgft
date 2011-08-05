@@ -40,3 +40,4 @@ EXPORTS
      _FcPatternDuplicate
      _FcPatternBuild
      _FcPatternAdd
+     _FcPatternAddWeak
