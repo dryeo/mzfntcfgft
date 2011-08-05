@@ -93,12 +93,11 @@
          slot->format != FT_GLYPH_FORMAT_BITMAP  )
       return;
 
-    /* some reasonable strength, PmW make 1px expand to 2px */
+    /* some reasonable strength, PmW Make 1px expand to 2px */
     xstr = FT_MulFix( face->units_per_EM,
-                      face->size->metrics.y_scale ) / 16 /* PmW */;
-
+                      face->size->metrics.y_scale ) / 16; /* PmW */
     /* PmW ystr = xstr; */
-    ystr = 0;
+    ystr = 0; /* PmW */
 
     if ( slot->format == FT_GLYPH_FORMAT_OUTLINE )
     {

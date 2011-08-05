@@ -56,6 +56,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20110804  - Update to Freetype 2.4.5
 20110804  - Add a stub for FcPatternAddWeak to fix a Mozilla build break
 20110407  - Updates for Poppler, add (Japanese) language support, add additional fonts. Patch from Silvan Scherrer
 20110407  - Bug fix from Rich Walsh

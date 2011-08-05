@@ -958,7 +958,7 @@
 
         outline->points[n].x = v_cur.x + strength + in.x;
         /* PmW outline->points[n].y = v_cur.y + strength + in.y; */
-        outline->points[n].y = v_cur.y; /* PmW don't shift veritcially! */
+        outline->points[n].y = v_cur.y; /* PmW Don't shift vertically! */
 
         v_prev = v_cur;
         v_cur  = v_next;
