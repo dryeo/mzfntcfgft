@@ -124,17 +124,34 @@ static void ConstructINIKeyName(char *pchDestinationBuffer, unsigned int uiDesti
 
 // #define LOOKUP_SFNT_NAME_DEBUG
 
-#define CP_UCS2BE   "UCS-2BE"   /* UCS-2BE */
-#define CP_UTF8     "UTF-8"     /* UTF-8   */
-
-#define CP_KOR      "IBM-949"   /* KSC5601 */
-#define CP_JPN      "IBM-943"   /* SJIS    */
-#define CP_PRC      "IBM-1381"  /* GB2312  */
-#define CP_ROC      "IBM-950"   /* Big5    */
-
-#define CP_SYSTEM   ""          /* System  */
+static const char CP_UCS2BE[] = "UCS-2BE";  /* UCS-2BE */
+static const char CP_UTF8[]   = "UTF-8";    /* UTF-8   */
+static const char CP_KOR[]    = "IBM-949";  /* KSC5601 */
+static const char CP_JPN[]    = "IBM-943";  /* SJIS    */
+static const char CP_PRC[]    = "IBM-1381"; /* GB2312  */
+static const char CP_ROC[]    = "IBM-950";  /* Big5    */
+static const char CP_SYSTEM[] = "";         /* System  */
 
 enum {LANG_NONE, LANG_KOR, LANG_JPN, LANG_PRC, LANG_ROC};
+
+
+/*
+ * Employ a simple check to make sure a self-identified DBCS string isn't
+ * actually a UCS-2 string.  (Workaround for some buggy Japanese system fonts
+ * which stupidly have Unicode names under the Shift-JIS ID.)  This is far
+ * from foolproof, but it should catch strings with either basic Latin or
+ * halfwidth forms in them.
+ */
+static FcBool RealDBCSName( unsigned char *name, int len )
+{
+    int i;
+    for ( i = 0; i < len; i++ ) {
+       if ( name[i] == 0xFF || name[i] == 0 )
+          return FcFalse;
+    }
+    return FcTrue;
+}
+
 
 /*
  * Set a font string property (most likely the font family name) based on the
@@ -301,19 +318,31 @@ static FcBool LookupSfntName(FT_Face ftface, FT_UShort name_id, char *pName,
       switch (sfntName.encoding_id)
       {
         case TT_MS_ID_WANSUNG:
-          fromCode = CP_KOR;
+          if (!RealDBCSName(sfntName.string, sfntName.string_len))
+             fromCode = CP_UCS2BE;
+          else
+             fromCode = CP_KOR;
           break;
 
         case TT_MS_ID_SJIS:
-          fromCode = CP_JPN;
+          if (!RealDBCSName(sfntName.string, sfntName.string_len))
+             fromCode = CP_UCS2BE;
+          else
+             fromCode = CP_JPN;
           break;
 
         case TT_MS_ID_GB2312:
-          fromCode = CP_PRC;
+          if (!RealDBCSName(sfntName.string, sfntName.string_len))
+             fromCode = CP_UCS2BE;
+          else
+             fromCode = CP_PRC;
           break;
 
         case TT_MS_ID_BIG_5:
-          fromCode = CP_ROC;
+          if (!RealDBCSName(sfntName.string, sfntName.string_len))
+             fromCode = CP_UCS2BE;
+          else
+             fromCode = CP_ROC;
           break;
 
         case TT_MS_ID_SYMBOL_CS :
@@ -322,12 +351,17 @@ static FcBool LookupSfntName(FT_Face ftface, FT_UShort name_id, char *pName,
           break;
       }
 
-      name = alloca(sfntName.string_len);
-      name_len = 0;
+      if (fromCode == CP_UCS2BE) {
+          name     = (char*)sfntName.string;
+          name_len = sfntName.string_len;
+      } else {
+         name = alloca(sfntName.string_len);
+         name_len = 0;
+         for (j = 0, name_len = 0; j < sfntName.string_len; j++)
+            if (sfntName.string[j])
+               name[name_len++] = sfntName.string[j];
+      }
 
-      for (j = 0, name_len = 0; j < sfntName.string_len; j++)
-        if (sfntName.string[j])
-          name[name_len++] = sfntName.string[j];
     }
   }
 
@@ -1321,16 +1355,18 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
                      (stristr(pFont->achStyleName, "BOLD")==NULL)     &&
                      (stristr(pFont->achStyleName, "HEAVY")==NULL)    &&
                      (stristr(pFont->achStyleName, "BLACK")==NULL));
-      } 
+      }
 
-      if ( p->slant > FC_SLANT_ROMAN )
+      if ( p->slant > FC_SLANT_ITALIC )
+      {
+        // Looking for an OBLIQUE font (fall back to ITALIC if necessary)
+        bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
+        if (!bSlantOk)
+           bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+      } else if ( p->slant > FC_SLANT_ROMAN )
       {
         // Looking for an ITALIC font
         bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
-      } else if ( p->slant > FC_SLANT_OBLIQUE )
-      {
-        // Looking for an OBLIQUE font
-        bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
       } else
       {
         // Looking for a non-italic font
@@ -1431,14 +1467,16 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
           bWeightOk = (stristr(pFont->achStyleName, "BOLD")==NULL);
         }
 
-        if ( p->slant > FC_SLANT_ROMAN )
+        if ( p->slant > FC_SLANT_ITALIC )
+        {
+          // Looking for an OBLIQUE font (fall back to ITALIC if necessary)
+          bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
+          if (!bSlantOk)
+             bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+        } else if ( p->slant > FC_SLANT_ROMAN )
         {
           // Looking for an ITALIC font
           bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
-        } else if ( p->slant > FC_SLANT_OBLIQUE )
-        {
-          // Looking for an OBLIQUE font
-          bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
         } else
         {
           // Looking for a non-italic font
@@ -1491,14 +1529,16 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
           bWeightOk = (stristr(pFont->achStyleName, "BOLD")==NULL);
         }
 
-        if ( p->slant > FC_SLANT_ROMAN )
+        if ( p->slant > FC_SLANT_ITALIC )
+        {
+          // Looking for an OBLIQUE font (fall back to ITALIC if necessary)
+          bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
+          if (!bSlantOk)
+             bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
+        } else if ( p->slant > FC_SLANT_ROMAN )
         {
           // Looking for an ITALIC font
           bSlantOk = (stristr(pFont->achStyleName, "ITALIC")!=NULL);
-        } else if ( p->slant > FC_SLANT_OBLIQUE )
-        {
-          // Looking for an OBLIQUE font
-          bSlantOk = (stristr(pFont->achStyleName, "OBLIQUE")!=NULL);
         } else
         {
           // Looking for a non-italic font
