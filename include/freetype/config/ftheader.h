@@ -679,7 +679,10 @@
    *   FreeType~2 API which provides functions specific to the XFree86 and
    *   X.Org X11 servers.
    */
-/* PmW #define FT_XFREE86_H  <freetype/ftxf86.h> */
+/* RLW - this is *not* X11/XFree86-specific and the single
+ *       function it provides is required by Cairo 1.12
+ */
+#define FT_XFREE86_H  <freetype/ftxf86.h>
 
 
   /*************************************************************************
