@@ -56,6 +56,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20111118  - Add support for FC_OUTLINE. Patch by KO Myung-Hun
 20110804  - More Japanese font fixes and some italic fixes. Patch by Alex Taylor
 20110804  - Update to Freetype 2.4.5
 20110804  - Add a stub for FcPatternAddWeak to fix a Mozilla build break

@@ -5,7 +5,7 @@
  *    Peter Weilbacher <mozilla@weilbacher.org>
  *
  * Contributors:
- *    KO Myung-Hun
+ *    KO Myung-Hun <komh78@gmail.com>
  *    Alex Taylor <alex@altsan.org>
  *    Rich Walsh <rich@e-vertise.com>
  *    Silvan Scherrer <silvan.scherrer@aroa.ch>
@@ -72,6 +72,7 @@ struct _FcPattern
     int hintstyle;
     FcBool autohint;
     FcBool bitmap;
+    FcBool outline;
     int rgba;
     double size;
     char *style;
@@ -905,6 +906,7 @@ fcExport FcPattern *FcPatternCreate(void)
   pResult->verticallayout = FcFalse; // horizontal layout by default
   pResult->autohint = FcFalse; // off by default as recommended in fontconfig.h
   pResult->bitmap = FcTrue; // default to using embedded bitmaps
+  pResult->outline = FcTrue; // default to using outline
   /* set the strings to NULL for easy testing */
   pResult->family = NULL;
   pResult->style = NULL;
@@ -1077,6 +1079,11 @@ fcExport FcResult FcPatternGetBool(const FcPattern *p, const char *object, int i
     *b = p->bitmap;
     return FcResultMatch;
   }
+  if (strcmp(object, FC_OUTLINE)==0)
+  {
+    *b = p->outline;
+    return FcResultMatch;
+  }
   return FcResultNoMatch;
 }
 
@@ -1246,6 +1253,11 @@ fcExport FcBool FcPatternAddBool(FcPattern *p, const char *object, FcBool b)
     p->bitmap = b;
     return FcTrue;
   }
+  if (strcmp(object, FC_OUTLINE)==0)
+  {
+    p->outline = b;
+    return FcTrue;
+  }
 
   return FcFalse;
 }
@@ -1319,6 +1331,16 @@ fcExport FcPattern *FcFontMatch(FcConfig *config, FcPattern *p, FcResult *result
   printf("input pattern\n  %s,%d,%d,%f\n",
          p->family, p->weight, p->slant, p->pixelsize);
 #endif
+
+  if (!p->outline)
+  {
+#ifdef MATCH_DEBUG
+    printf("Only outline fonts are supported!!!\n");
+#endif
+    if (result)
+      *result = FcResultNoMatch;
+    return NULL;
+  }
 
   // first try to match the font using an exact match of the family name
   while (pFont)
@@ -1883,7 +1905,8 @@ fcExport FcBool FcPatternEqual(const FcPattern *pa, const FcPattern *pb)
       pa->embolden != pb->embolden ||
       pa->verticallayout != pb->verticallayout ||
       pa->autohint != pb->autohint ||
-      pa->bitmap != pb->bitmap)
+      pa->bitmap != pb->bitmap ||
+      pa->outline != pb->outline)
   {
     return FcFalse;
   }
