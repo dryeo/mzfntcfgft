@@ -408,7 +408,7 @@
    *   definitions of an API which supports gzip-compressed files.
    *
    */
-#define FT_GZIP_H  <freetype/ftgzip.h>
+/* PmW #define FT_GZIP_H  <freetype/ftgzip.h> */
 
 
   /*************************************************************************
@@ -421,7 +421,7 @@
    *   definitions of an API which supports LZW-compressed files.
    *
    */
-#define FT_LZW_H  <freetype/ftlzw.h>
+/* PmW #define FT_LZW_H  <freetype/ftlzw.h> */
 
 
   /*************************************************************************
@@ -434,7 +434,7 @@
    *   definitions of an API which supports bzip2-compressed files.
    *
    */
-#define FT_BZIP2_H  <freetype/ftbzip2.h>
+/* DRY #define FT_BZIP2_H  <freetype/ftbzip2.h> */
 
 
   /*************************************************************************
@@ -447,7 +447,7 @@
    *   definitions of an API which supports Windows FNT files.
    *
    */
-#define FT_WINFONTS_H   <freetype/ftwinfnt.h>
+/* PmW #define FT_WINFONTS_H   <freetype/ftwinfnt.h> */
 
 
   /*************************************************************************
@@ -665,6 +665,7 @@
    *   A macro used in #include statements to name the file containing the
    *   FreeType~2 API which performs artificial obliquing and emboldening.
    */
+#define HAVE_FT_GLYPHSLOT_EMBOLDEN 1 /* PmW */
 #define FT_SYNTHESIS_H  <freetype/ftsynth.h>
 
 
@@ -678,6 +679,9 @@
    *   FreeType~2 API which provides functions specific to the XFree86 and
    *   X.Org X11 servers.
    */
+/* RLW - this is *not* X11/XFree86-specific and the single
+ *       function it provides is required by Cairo 1.12
+ */
 #define FT_XFREE86_H  <freetype/ftxf86.h>
 
 

@@ -20,8 +20,11 @@
 
 #define  FT_MAKE_OPTION_SINGLE_OBJECT
 
+#ifdef FT_CONFIG_OPTION_PIC /* RLW */
 #include "ftpic.c"
 #include "basepic.c"
+#endif /* RLW */
+
 #include "ftadvanc.c"
 #include "ftcalc.c"
 #include "ftdbgmem.c"

@@ -751,14 +751,18 @@
     face->root.style_name  = NULL;
     if ( face->os2.version != 0xFFFFU && face->os2.fsSelection & 256 )
     {
+#ifndef __OS2__ /* PmW: Don't use the preferred properties on OS/2 */
       if ( !ignore_preferred_family )
         GET_NAME( PREFERRED_FAMILY, &face->root.family_name );
       if ( !face->root.family_name )
+#endif /* __OS2__ PmW */
         GET_NAME( FONT_FAMILY, &face->root.family_name );
 
+#ifndef __OS2__ /* PmW: Don't use the preferred properties on OS/2 */
       if ( !ignore_preferred_subfamily )
         GET_NAME( PREFERRED_SUBFAMILY, &face->root.style_name );
       if ( !face->root.style_name )
+#endif /* __OS2__ PmW */
         GET_NAME( FONT_SUBFAMILY, &face->root.style_name );
     }
     else
