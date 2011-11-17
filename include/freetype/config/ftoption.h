@@ -148,7 +148,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*   Define this macro if you want to enable this `feature'.             */
   /*                                                                       */
-/* PmW #define FT_CONFIG_OPTION_USE_LZW */
+#define FT_CONFIG_OPTION_USE_LZW
 
 
   /*************************************************************************/
@@ -163,7 +163,7 @@ FT_BEGIN_HEADER
   /*   Define this macro if you want to enable this `feature'.  See also   */
   /*   the macro FT_CONFIG_OPTION_SYSTEM_ZLIB below.                       */
   /*                                                                       */
-/* PmW #define FT_CONFIG_OPTION_USE_ZLIB */
+#define FT_CONFIG_OPTION_USE_ZLIB
 
 
   /*************************************************************************/
@@ -201,6 +201,17 @@ FT_BEGIN_HEADER
   /*   Define this macro if you want to enable this `feature'.             */
   /*                                                                       */
 /* #define FT_CONFIG_OPTION_USE_BZIP2 */
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* Define to disable the use of file stream functions and types, FILE,   */
+  /* fopen() etc.  Enables the use of smaller system libraries on embedded */
+  /* systems that have multiple system libraries, some with or without     */
+  /* file stream support, in the cases where file stream support is not    */
+  /* necessary such as memory loading of font files.                       */
+  /*                                                                       */
+/* #define FT_CONFIG_OPTION_DISABLE_STREAM_SUPPORT */
 
 
   /*************************************************************************/
@@ -298,7 +309,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*   Note that the `FOND' resource isn't checked.                        */
   /*                                                                       */
-/* PmW #define FT_CONFIG_OPTION_MAC_FONTS */
+#define FT_CONFIG_OPTION_MAC_FONTS
 
 
   /*************************************************************************/
