@@ -12,7 +12,7 @@
  *
  */
 
-#include "fcint.h"
+#include "fontconfig/fcint.h"
 
 static FT_Library hFtLib;
 static HINI       hiniFontCacheStorage;

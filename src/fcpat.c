@@ -12,7 +12,7 @@
  *
  */
 
-#include "fcint.h"
+#include "fontconfig/fcint.h"
 
 fcExport FcPattern *FcPatternCreate(void)
 {

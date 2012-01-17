@@ -5,7 +5,13 @@ DEPTH = ..
 include $(DEPTH)/defines.mk
 
 FONTCONFIG_DLLFLAGS = -l$(FREETYPE_NAME) -L../$(LIBDIR)
-FONTCONFIG_OBJS = fontconfig.o 
+
+FONTCONFIG_OBJS = \
+	fontconfig.o        \
+	fclang.o            \
+	fcpat.o             \
+        fcstr.o             \
+	$(NULL)
 
 FREETYPE_OBJS = \
 	base/ftsystem.o     \
@@ -30,7 +36,9 @@ FREETYPE_OBJS = \
 	smooth/smooth.o     \
 	base/ftbitmap.o     \
 	pshinter/pshinter.o \
-	otvalid/otvalid.o
+	otvalid/otvalid.o   \
+	$(NULL)
+
 FREETYPE_CFLAGS = -DFT2_BUILD_LIBRARY=1
 
 CFLAGS += -I../$(INCLUDEDIR) $(FREETYPE_CFLAGS)
