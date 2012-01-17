@@ -39,8 +39,8 @@ typedef int		FcBool;
  */
 
 #define FC_MAJOR	2
-#define FC_MINOR	3
-#define FC_REVISION	2
+#define FC_MINOR	8
+#define FC_REVISION	0
 
 #define FC_VERSION	((FC_MAJOR * 10000) + (FC_MINOR * 100) + (FC_REVISION))
 
@@ -54,7 +54,7 @@ typedef int		FcBool;
  * it means multiple copies of the font information.
  */
 
-#define FC_CACHE_VERSION    "1"
+#define FC_CACHE_VERSION    "3"
 
 #define FcTrue		1
 #define FcFalse		0
@@ -96,7 +96,11 @@ typedef int		FcBool;
 #define FC_CAPABILITY       "capability"	/* String */
 #define FC_FONTFORMAT	    "fontformat"	/* String */
 #define FC_EMBOLDEN	    "embolden"		/* Bool - true if emboldening needed*/
+#define FC_EMBEDDED_BITMAP  "embeddedbitmap"	/* Bool - true to enable embedded bitmaps */
+#define FC_DECORATIVE	    "decorative"	/* Bool - true if style is a decorative variant */
+#define FC_LCD_FILTER	    "lcdfilter"		/* Int */
 
+#define FC_CACHE_SUFFIX		    ".cache-"FC_CACHE_VERSION
 #define FC_DIR_CACHE_FILE	    "fonts.cache-"FC_CACHE_VERSION
 #define FC_USER_CACHE_FILE	    ".fonts.cache-"FC_CACHE_VERSION
 
@@ -120,6 +124,8 @@ typedef int		FcBool;
 #define FC_WEIGHT_ULTRABOLD	    FC_WEIGHT_EXTRABOLD
 #define FC_WEIGHT_BLACK		    210
 #define FC_WEIGHT_HEAVY		    FC_WEIGHT_BLACK
+#define FC_WEIGHT_EXTRABLACK	    215
+#define FC_WEIGHT_ULTRABLACK	    FC_WEIGHT_EXTRABLACK
 
 #define FC_SLANT_ROMAN		    0
 #define FC_SLANT_ITALIC		    100
@@ -153,6 +159,12 @@ typedef int		FcBool;
 #define FC_HINT_SLIGHT      1
 #define FC_HINT_MEDIUM      2
 #define FC_HINT_FULL        3
+
+/* LCD filter */
+#define FC_LCD_NONE	    0
+#define FC_LCD_DEFAULT	    1
+#define FC_LCD_LIGHT	    2
+#define FC_LCD_LEGACY	    3
  
 typedef enum _FcType {
     FcTypeVoid, 
@@ -232,7 +244,10 @@ typedef enum _FcMatchKind {
 } FcMatchKind;
 
 typedef enum _FcLangResult {
-    FcLangEqual, FcLangDifferentCountry, FcLangDifferentLang
+    FcLangEqual = 0,
+    FcLangDifferentCountry = 1,
+    FcLangDifferentTerritory = 1,
+    FcLangDifferentLang = 2
 } FcLangResult;
 
 typedef enum _FcSetName {
@@ -264,9 +279,6 @@ typedef struct _FcStrSet    FcStrSet;
 
 _FCFUNCPROTOBEGIN
 
-FcBool
-FcDirCacheValid (const FcChar8 *cache_file);
-
 /* fcblanks.c */
 FcBlanks *
 FcBlanksCreate (void);
@@ -279,6 +291,11 @@ FcBlanksAdd (FcBlanks *b, FcChar32 ucs4);
 
 FcBool
 FcBlanksIsMember (FcBlanks *b, FcChar32 ucs4);
+
+/* fccache.c */
+
+FcBool
+FcDirCacheValid (const FcChar8 *cache_file);
 
 /* fccfg.c */
 FcChar8 *
