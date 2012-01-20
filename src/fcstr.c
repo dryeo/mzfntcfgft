@@ -12,7 +12,7 @@
  *
  */
 
-#include "fontconfig/fcint.h"
+#include "fcint.h"
 
 
 fcExport int FcStrCmpIgnoreCase(const FcChar8 *s1, const FcChar8 *s2)

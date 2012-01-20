@@ -12,7 +12,7 @@
  *
  */
 
-#include "fontconfig/fcint.h"
+#include "fcint.h"
 
 typedef struct {
     const FcChar8    	lang[8];
@@ -24,7 +24,7 @@ typedef struct {
     int end;
 } FcLangCharSetRange;
 
-#include "fontconfig/fclang.h"
+#include "fclang.h"
 
 struct _FcLangSet {
     FcStrSet	*extra;
