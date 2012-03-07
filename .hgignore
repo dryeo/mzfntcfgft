@@ -9,6 +9,7 @@ lib/*.a
 src/*.a
 src/fontconfig_*
 bin/freetype-config
+Jamfile
 syntax: regexp
 \.swp$
 \.swo$
