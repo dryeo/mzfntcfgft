@@ -8,6 +8,7 @@ src/*.lib
 lib/*.a
 src/*.a
 src/fontconfig_*
+src/*.def
 bin/freetype-config
 Jamfile
 syntax: regexp
