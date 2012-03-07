@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  pfrsbit.h                                                              */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    FreeType PFR bitmap loader (specification).                          */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
+/*  Copyright 2002 by                                                      */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,26 +16,21 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+#ifndef __PFRSBIT_H__
+#define __PFRSBIT_H__
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
+#include "pfrobjs.h"
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
+FT_BEGIN_HEADER
 
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
-#endif
+  FT_LOCAL( FT_Error )
+  pfr_slot_load_bitmap( PFR_Slot  glyph,
+                        PFR_Size  size,
+                        FT_UInt   glyph_index );
+
+FT_END_HEADER
+
+#endif /* __PFR_SBIT_H__ */
+
 
 /* END */

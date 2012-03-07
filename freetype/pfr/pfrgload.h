@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  pfrgload.h                                                             */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    FreeType PFR glyph loader (specification).                           */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
+/*  Copyright 2002 by                                                      */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,26 +16,34 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+#ifndef __PFRGLOAD_H__
+#define __PFRGLOAD_H__
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
+#include "pfrtypes.h"
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
+FT_BEGIN_HEADER
 
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
-#endif
+
+  FT_LOCAL( void )
+  pfr_glyph_init( PFR_Glyph       glyph,
+                  FT_GlyphLoader  loader );
+
+  FT_LOCAL( void )
+  pfr_glyph_done( PFR_Glyph  glyph );
+
+
+  FT_LOCAL( FT_Error )
+  pfr_glyph_load( PFR_Glyph  glyph,
+                  FT_Stream  stream,
+                  FT_ULong   gps_offset,
+                  FT_ULong   offset,
+                  FT_ULong   size );
+
+
+FT_END_HEADER
+
+
+#endif /* __PFRGLOAD_H__ */
+
 
 /* END */

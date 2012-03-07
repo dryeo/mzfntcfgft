@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  pfrcmap.h                                                              */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    FreeType PFR cmap handling (specification).                          */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
+/*  Copyright 2002 by                                                      */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,26 +16,31 @@
 /***************************************************************************/
 
 
+#ifndef __PFRCMAP_H__
+#define __PFRCMAP_H__
+
 #include <ft2build.h>
+#include FT_INTERNAL_OBJECTS_H
+#include "pfrtypes.h"
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
+FT_BEGIN_HEADER
 
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
-#endif
+  typedef struct  PFR_CMapRec_
+  {
+    FT_CMapRec  cmap;
+    FT_UInt     num_chars;
+    PFR_Char    chars;
+
+  } PFR_CMapRec, *PFR_CMap;
+
+
+  FT_CALLBACK_TABLE const FT_CMap_ClassRec  pfr_cmap_class_rec;
+
+FT_END_HEADER
+
+
+#endif /* __PFRCMAP_H__ */
+
 
 /* END */

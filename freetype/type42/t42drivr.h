@@ -1,11 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  t42drivr.h                                                             */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    High-level Type 42 driver interface (specification).                 */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
+/*  Copyright 2002 by Roberto Alameda.                                     */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
 /*  modified, and distributed under the terms of the FreeType project      */
@@ -16,26 +15,28 @@
 /***************************************************************************/
 
 
+#ifndef __T42DRIVR_H__
+#define __T42DRIVR_H__
+
+
 #include <ft2build.h>
+#include FT_INTERNAL_DRIVER_H
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
+FT_BEGIN_HEADER
 
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
-#endif
+#ifdef FT_CONFIG_OPTION_PIC
+#error "this module does not support PIC yet"
+#endif 
+
+
+  FT_EXPORT_VAR( const FT_Driver_ClassRec )  t42_driver_class;
+
+
+FT_END_HEADER
+
+
+#endif /* __T42DRIVR_H__ */
+
 
 /* END */

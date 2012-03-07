@@ -93,11 +93,10 @@
          slot->format != FT_GLYPH_FORMAT_BITMAP  )
       return;
 
-    /* some reasonable strength, PmW Make 1px expand to 2px */
+    /* some reasonable strength */
     xstr = FT_MulFix( face->units_per_EM,
-                      face->size->metrics.y_scale ) / 16; /* PmW */
-    /* PmW ystr = xstr; */
-    ystr = 0; /* PmW */
+                      face->size->metrics.y_scale ) / 24;
+    ystr = xstr;
 
     if ( slot->format == FT_GLYPH_FORMAT_OUTLINE )
     {
@@ -107,7 +106,7 @@
       /* this is more than enough for most glyphs; if you need accurate */
       /* values, you have to call FT_Outline_Get_CBox                   */
       xstr = xstr * 2;
-      /* PmW ystr = xstr; */ /* DRY This along with the ystr = 0 line above needs further investigation */
+      ystr = xstr;
     }
     else /* slot->format == FT_GLYPH_FORMAT_BITMAP */
     {

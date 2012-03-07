@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  gxvalid.c                                                              */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    FreeType validator for TrueTypeGX/AAT tables (body only).            */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
+/*  Copyright 2005 by suzuki toshiya, Masatake YAMATO, Red Hat K.K.,       */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -15,27 +15,32 @@
 /*                                                                         */
 /***************************************************************************/
 
+#define FT_MAKE_OPTION_SINGLE_OBJECT
 
 #include <ft2build.h>
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
+#include "gxvfeat.c"
+#include "gxvcommn.c"
+#include "gxvbsln.c"
+#include "gxvtrak.c"
+#include "gxvjust.c"
+#include "gxvmort.c"
+#include "gxvmort0.c"
+#include "gxvmort1.c"
+#include "gxvmort2.c"
+#include "gxvmort4.c"
+#include "gxvmort5.c"
+#include "gxvmorx.c"
+#include "gxvmorx0.c"
+#include "gxvmorx1.c"
+#include "gxvmorx2.c"
+#include "gxvmorx4.c"
+#include "gxvmorx5.c"
+#include "gxvkern.c"
+#include "gxvopbd.c"
+#include "gxvprop.c"
+#include "gxvlcar.c"
+#include "gxvmod.c"
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
-
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
-#endif
 
 /* END */

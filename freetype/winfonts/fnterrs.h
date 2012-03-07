@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  fnterrs.h                                                              */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    Win FNT/FON error codes (specification only).                        */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
+/*  Copyright 2001 by                                                      */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,26 +16,26 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+  /*************************************************************************/
+  /*                                                                       */
+  /* This file is used to define the Windows FNT/FON error enumeration     */
+  /* constants.                                                            */
+  /*                                                                       */
+  /*************************************************************************/
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
+#ifndef __FNTERRS_H__
+#define __FNTERRS_H__
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
+#include FT_MODULE_ERRORS_H
 
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
-#endif
+#undef __FTERRORS_H__
+
+#define FT_ERR_PREFIX  FNT_Err_
+#define FT_ERR_BASE    FT_Mod_Err_Winfonts
+
+#include FT_ERRORS_H
+
+#endif /* __FNTERRS_H__ */
+
 
 /* END */

@@ -1,11 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftbase.c                                                               */
+/*  t42types.h                                                             */
 /*                                                                         */
-/*    Single object library component (body only).                         */
+/*    Type 42 font data types (specification only).                        */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 by       */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
+/*  Copyright 2002, 2003, 2006, 2008 by Roberto Alameda.                   */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
 /*  modified, and distributed under the terms of the FreeType project      */
@@ -16,26 +15,42 @@
 /***************************************************************************/
 
 
+#ifndef __T42TYPES_H__
+#define __T42TYPES_H__
+
+
 #include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_TYPE1_TABLES_H
+#include FT_INTERNAL_TYPE1_TYPES_H
+#include FT_INTERNAL_POSTSCRIPT_HINTS_H
 
-#define  FT_MAKE_OPTION_SINGLE_OBJECT
 
-#include "ftpic.c"
-#include "basepic.c"
-#include "ftadvanc.c"
-#include "ftcalc.c"
-#include "ftdbgmem.c"
-#include "ftgloadr.c"
-#include "ftobjs.c"
-#include "ftoutln.c"
-#include "ftrfork.c"
-#include "ftsnames.c"
-#include "ftstream.c"
-#include "fttrigon.c"
-#include "ftutil.c"
+FT_BEGIN_HEADER
 
-#if defined( FT_MACINTOSH ) && !defined ( DARWIN_NO_CARBON )
-#include "ftmac.c"
+
+  typedef struct  T42_FaceRec_
+  {
+    FT_FaceRec      root;
+    T1_FontRec      type1;
+    const void*     psnames;
+    const void*     psaux;
+#if 0
+    const void*     afm_data;
 #endif
+    FT_Byte*        ttf_data;
+    FT_ULong        ttf_size;
+    FT_Face         ttf_face;
+    FT_CharMapRec   charmaprecs[2];
+    FT_CharMap      charmaps[2];
+    PS_UnicodesRec  unicode_map;
+
+  } T42_FaceRec, *T42_Face;
+
+
+FT_END_HEADER
+
+#endif /* __T42TYPES_H__ */
+
 
 /* END */
