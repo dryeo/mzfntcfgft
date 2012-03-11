@@ -57,7 +57,8 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
-20120306  - Seperate the src directories into fontconfig and freetype and temporarily remove Peters fixes in anticapation of Silvans fixes from Lucide
+20120310  - Update to Freetype 2.4.9
+20120306  - Separate the src directories into fontconfig and freetype and temporarily remove Peters fixes in anticapation of Silvans fixes from Lucide
 20120306  - Add tag Gecko_10_Release for the revision built against Firefox 10.x etc
 20111116  - Update to Freetype 2.4.8
 20110918  - Add support for FC_OUTLINE. Patch by KO Myung-Hun
