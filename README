@@ -36,9 +36,7 @@ of the packages
                         Peter Weilbacher in collaboration with Doodle)
    fontconfig-2.3.2-os2 (only the header files of the original Fontconfig package)
 Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
-   freetype-2.4.8.tar.bz2 (from http://sourceforge.net/projects/freetype/files/freetype2/2.4.8/)
-Differences from the default sources of FreeType are marked with "PmW" with some marked
-"DRY" and "RLW"
+   freetype-2.4.9.tar.bz2 (from http://sourceforge.net/projects/freetype/files/freetype2/2.4.9/)
 
 
 - Using the library
