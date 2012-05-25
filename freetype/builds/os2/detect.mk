@@ -65,7 +65,17 @@ ifeq ($(PLATFORM),os2)
     .PHONY: devel
   endif
 
-  setup: dos_setup
+  ifndef SHELL
+    setup: dos_setup
+  endif
+
+  ifdef SHELL
+    COPY   := cp
+    DELETE := rm
+    CAT    := cat
+    SEP    := /
+    setup: std_setup
+  endif
 
 endif   # test PLATFORM os2
 

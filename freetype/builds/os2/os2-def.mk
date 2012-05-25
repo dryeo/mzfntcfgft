@@ -18,6 +18,15 @@ CAT       := type
 SEP       := $(strip \ )
 BUILD_DIR := $(TOP_DIR)/builds/os2
 PLATFORM  := os2
+E_BUILD   := .exe
+
+ifdef SHELL
+  COPY   := cp
+  DELETE := rm
+  CAT    := cat
+  SEP    := /
+  DLL    := yes
+endif
 
 # The executable file extension (for tools), *with* leading dot.
 #
