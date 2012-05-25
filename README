@@ -55,6 +55,9 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20120522  - Updated Fontconfig to build nicely static and dynamic in one go
+20120522  - Seperate the Fontconfig part
+20120521  - Updated Freetype to build nicely static and dynamic in one go
 20120310  - Update to Freetype 2.4.9
 20120306  - Separate the src directories into fontconfig and freetype and temporarily remove Peters fixes in anticapation of Silvans fixes from Lucide
 20120306  - Add tag Gecko_10_Release for the revision built against Firefox 10.x etc
