@@ -1,0 +1,328 @@
+diff -Naur I:\usr\src\freetype-2.4.10/builds/exports.mk Y:\mzfntcfgft\freetype/builds/exports.mk
+--- I:\usr\src\freetype-2.4.10/builds/exports.mk	Thu Jun 14 02:22:10 2012
++++ Y:\mzfntcfgft\freetype/builds/exports.mk	Tue Jun 26 21:25:40 2012
+@@ -40,7 +40,12 @@
+   endif
+ 
+   # The list of public headers we're going to parse.
++ifeq ($(PLATFORM),os2)
++  PUBLIC_HEADERS1 := $(wildcard $(PUBLIC_DIR)/*.h)
++  PUBLIC_HEADERS = $(filter-out $(PUBLIC_DIR)/ftmac.h, $(PUBLIC_HEADERS1))
++else
+   PUBLIC_HEADERS := $(wildcard $(PUBLIC_DIR)/*.h)
++endif
+ 
+   # The `apinames' source and executable.  We use $E_BUILD as the host
+   # executable suffix, which *includes* the final dot.
+@@ -62,8 +67,13 @@
+   #
+   $(EXPORTS_LIST): $(APINAMES_EXE) $(PUBLIC_HEADERS)
+ 	  $(subst /,$(SEP),$(APINAMES_EXE)) -o$@ $(APINAMES_OPTIONS) $(PUBLIC_HEADERS)
+-	  @echo TT_New_Context >> $(EXPORTS_LIST)
+-	  @echo TT_RunIns >> $(EXPORTS_LIST)
++ifeq ($(PLATFORM),os2)
++	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
++	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
++else
++ 	  @echo TT_New_Context >> $(EXPORTS_LIST)
++ 	  @echo TT_RunIns >> $(EXPORTS_LIST)
++endif
+ 
+   $(PROJECT_LIBRARY): $(EXPORTS_LIST)
+ 
+diff -Naur I:\usr\src\freetype-2.4.10/builds/modules.mk Y:\mzfntcfgft\freetype/builds/modules.mk
+--- I:\usr\src\freetype-2.4.10/builds/modules.mk	Sat Mar 14 06:45:26 2009
++++ Y:\mzfntcfgft\freetype/builds/modules.mk	Tue Jun 26 21:25:40 2012
+@@ -29,8 +29,8 @@
+ 	$(FTMODULE_H_DONE)
+ 
+ ifneq ($(findstring $(PLATFORM),dos win32 win16 os2),)
+-  OPEN_MODULE   := @echo$(space)
+-  CLOSE_MODULE  :=  >> $(subst /,$(SEP),$(FTMODULE_H))
++  OPEN_MODULE   := @echo$(space)'
++  CLOSE_MODULE  := '>> $(subst /,$(SEP),$(FTMODULE_H))
+   REMOVE_MODULE := @-$(DELETE) $(subst /,$(SEP),$(FTMODULE_H))
+ else
+   OPEN_MODULE   := @echo "
+diff -Naur I:\usr\src\freetype-2.4.10/builds/os2/detect.mk Y:\mzfntcfgft\freetype/builds/os2/detect.mk
+--- I:\usr\src\freetype-2.4.10/builds/os2/detect.mk	Sat Mar 14 06:45:26 2009
++++ Y:\mzfntcfgft\freetype/builds/os2/detect.mk	Sat Jun 16 14:13:10 2012
+@@ -65,7 +65,17 @@
+     .PHONY: devel
+   endif
+ 
+-  setup: dos_setup
++  ifndef SHELL
++    setup: dos_setup
++  endif
++
++  ifdef SHELL
++    COPY   := cp
++    DELETE := rm
++    CAT    := cat
++    SEP    := /
++    setup: std_setup
++  endif
+ 
+ endif   # test PLATFORM os2
+ 
+diff -Naur I:\usr\src\freetype-2.4.10/builds/os2/linkdll.mk Y:\mzfntcfgft\freetype/builds/os2/linkdll.mk
+--- I:\usr\src\freetype-2.4.10/builds/os2/linkdll.mk	Sat Feb  6 22:28:16 2106
++++ Y:\mzfntcfgft\freetype/builds/os2/linkdll.mk	Sat Jun 16 14:13:10 2012
+@@ -0,0 +1,49 @@
++#
++# FreeType 2 configuration rules for OS/2; gcc and dll
++#
++
++
++# Copyright 1996-2000 by
++# David Turner, Robert Wilhelm, and Werner Lemberg.
++#
++# This file is part of the FreeType project, and may only be used, modified,
++# and distributed under the terms of the FreeType project license,
++# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
++# indicate that you have read the license and understand and accept it
++# fully.
++#
++#  Link instructions for standard systems
++#
++
++
++ifdef BUILD_PROJECT
++
++  .PHONY: clean_project distclean_project
++
++  # Now include the main sub-makefile.  It contains all the rules used to
++  # build the library with the previous variables defined.
++  #
++  include $(TOP_DIR)/builds/$(PROJECT).mk
++
++  # The cleanup targets.
++  #
++  clean_project: clean_project_std
++  distclean_project: distclean_project_std
++
++  # This final rule is used to link all object files into a single library.
++  # this is compiler-specific
++  #
++  $(PROJECT_LIBRARY): $(OBJECTS_LIST) $(OBJ_DIR)/$(OS2DLLNAME)
++
++
++$(OBJ_DIR)/$(OS2DLLNAME): $(OBJECTS_LIST)
++	rm -f $(OBJ_DIR)/$(PROJECT).a
++	ar cru $(OBJ_DIR)/$(PROJECT)_s.a $(OBJECTS_LIST)
++	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zdll $(EXPORTS_LIST) -o $@ $(OBJECTS_LIST) 
++	emximp -o $(OBJ_DIR)/$(PROJECT).a $(EXPORTS_LIST)
++	emximp -o $(OBJ_DIR)/$(PROJECT).lib $(EXPORTS_LIST)
++#	cp $@ $(OBJ_DIR)
++
++endif
++
++# EOF
+diff -Naur I:\usr\src\freetype-2.4.10/builds/os2/os2-def.mk Y:\mzfntcfgft\freetype/builds/os2/os2-def.mk
+--- I:\usr\src\freetype-2.4.10/builds/os2/os2-def.mk	Sat Mar 14 06:45:26 2009
++++ Y:\mzfntcfgft\freetype/builds/os2/os2-def.mk	Sat Jun 16 14:13:10 2012
+@@ -18,6 +18,15 @@
+ SEP       := $(strip \ )
+ BUILD_DIR := $(TOP_DIR)/builds/os2
+ PLATFORM  := os2
++E_BUILD   := .exe
++
++ifdef SHELL
++  COPY   := cp
++  DELETE := rm
++  CAT    := cat
++  SEP    := /
++  DLL    := yes
++endif
+ 
+ # The executable file extension (for tools), *with* leading dot.
+ #
+diff -Naur I:\usr\src\freetype-2.4.10/builds/os2/os2-gcc.mk Y:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk
+--- I:\usr\src\freetype-2.4.10/builds/os2/os2-gcc.mk	Sat Mar 14 06:45:26 2009
++++ Y:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	Sat Jun 16 14:13:10 2012
+@@ -12,15 +12,25 @@
+ # indicate that you have read the license and understand and accept it
+ # fully.
+ 
++# default definitions of the export list
++#
++OS2DLLNAME        = freetyp2.dll
++EXPORTS_LIST      = $(OBJ_DIR)/freetype.def
++EXPORTS_OPTIONS   = $(EXPORTS_LIST)
++APINAMES_OPTIONS := -d$(OS2DLLNAME) -wO
+ 
+ # include OS/2-specific definitions
+ include $(TOP_DIR)/builds/os2/os2-def.mk
+ 
+ # include gcc-specific definitions
+ include $(TOP_DIR)/builds/compiler/gcc.mk
++CFLAGS +=-D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
+ 
+ # include linking instructions
++ifeq ($(DLL),yes)
++  include $(TOP_DIR)/builds/os2/linkdll.mk
++else
+ include $(TOP_DIR)/builds/link_dos.mk
+-
++endif
+ 
+ # EOF
+diff -Naur I:\usr\src\freetype-2.4.10/src/tools/apinames.c Y:\mzfntcfgft\freetype/src/tools/apinames.c
+--- I:\usr\src\freetype-2.4.10/src/tools/apinames.c	Wed Jun 13 22:35:58 2012
++++ Y:\mzfntcfgft\freetype/src/tools/apinames.c	Tue Jun 26 21:25:40 2012
+@@ -31,7 +31,8 @@
+   OUTPUT_LIST = 0,      /* output the list of names, one per line             */
+   OUTPUT_WINDOWS_DEF,   /* output a Windows .DEF file for Visual C++ or Mingw */
+   OUTPUT_BORLAND_DEF,   /* output a Windows .DEF file for Borland C++         */
+-  OUTPUT_WATCOM_LBC     /* output a Watcom Linker Command File                */
++  OUTPUT_WATCOM_LBC,    /* output a Watcom Linker Command File                */
++  OUTPUT_OS2_DEF        /* output a os2 .DEF file for gcc                     */
+ 
+ } OutputFormat;
+ 
+@@ -187,6 +188,44 @@
+       }
+       break;
+ 
++      case OUTPUT_OS2_DEF:
++      {
++          /* we must omit the .dll suffix from the library name */
++          char         temp[512];
++          const char*  dot;
++
++
++          if ( dll_name == NULL )
++          {
++            fprintf( stderr,
++                     "you must provide a DLL name with the -d option!\n" );
++            exit( 4 );
++          }
++
++          dot = strchr( dll_name, '.' );
++          if ( dot != NULL )
++          {
++            int  len = dot - dll_name;
++
++
++            if ( len > (int)( sizeof ( temp ) - 1 ) )
++              len = sizeof ( temp ) - 1;
++
++            memcpy( temp, dll_name, len );
++            temp[len] = 0;
++
++            dll_name = (const char*)temp;
++          }
++
++          fprintf( out, "LIBRARY %s INITINSTANCE TERMINSTANCE\n", dll_name );
++          fprintf( out, "DESCRIPTION \"FreeType 2 DLL\"\n" );
++          fprintf( out, "DATA MULTIPLE\n" );
++          fprintf( out, "EXPORTS\n" );
++          for ( nn = 0; nn < num_names; nn++ )
++            fprintf( out, "  _%s\n", the_names[nn].name );
++          }
++        break;
++
+     default:  /* LIST */
+       for ( nn = 0; nn < num_names; nn++ )
+         fprintf( out, "%s\n", the_names[nn].name );
+@@ -311,6 +350,7 @@
+    "           -w     : output .DEF file for Visual C++ and Mingw\n"
+    "           -wB    : output .DEF file for Borland C++\n"
+    "           -wW    : output Watcom Linker Response File\n"
++   "           -wO    : output os2 .DEF file for gcc\n"
+    "\n";
+ 
+   fprintf( stderr,
+@@ -393,6 +433,10 @@
+           case 'W':
+             format = OUTPUT_WATCOM_LBC;
+             break;
++
++          case 'O':
++          case 'o':
++            format = OUTPUT_OS2_DEF;
+ 
+           case 0:
+             break;
+diff -Naur I:\usr\src\freetype-2.4.10/src/tools/out Y:\mzfntcfgft\freetype/src/tools/out
+--- I:\usr\src\freetype-2.4.10/src/tools/out	Sat Feb  6 22:28:16 2106
++++ Y:\mzfntcfgft\freetype/src/tools/out	Tue Jun 26 20:29:00 2012
+@@ -0,0 +1,77 @@
++--- I:\usr\src\freetype-2.4.10\src\tools\apinames.c	Wed Jun 13 22:35:58 2012
+++++ Y:\mzfntcfgft\freetype\src\tools\apinames.c	Sat Jun 16 14:13:20 2012
++@@ -31,7 +31,8 @@
++   OUTPUT_LIST = 0,      /* output the list of names, one per line             */
++   OUTPUT_WINDOWS_DEF,   /* output a Windows .DEF file for Visual C++ or Mingw */
++   OUTPUT_BORLAND_DEF,   /* output a Windows .DEF file for Borland C++         */
++-  OUTPUT_WATCOM_LBC     /* output a Watcom Linker Command File                */
+++  OUTPUT_WATCOM_LBC,    /* output a Watcom Linker Command File                */
+++  OUTPUT_OS2_DEF        /* output a os2 .DEF file for gcc                     */
++ 
++ } OutputFormat;
++ 
++@@ -187,6 +188,44 @@
++       }
++       break;
++ 
+++    case OUTPUT_OS2_DEF:
+++    {
+++        /* we must omit the .dll suffix from the library name */
+++        char         temp[512];
+++        const char*  dot;
+++
+++
+++        if ( dll_name == NULL )
+++        {
+++          fprintf( stderr,
+++                   "you must provide a DLL name with the -d option!\n" );
+++          exit( 4 );
+++        }
+++
+++        dot = strchr( dll_name, '.' );
+++        if ( dot != NULL )
+++        {
+++          int  len = dot - dll_name;
+++
+++
+++          if ( len > (int)( sizeof ( temp ) - 1 ) )
+++            len = sizeof ( temp ) - 1;
+++
+++          memcpy( temp, dll_name, len );
+++          temp[len] = 0;
+++
+++          dll_name = (const char*)temp;
+++        }
+++
+++        fprintf( out, "LIBRARY %s INITINSTANCE TERMINSTANCE\n", dll_name );
+++        fprintf( out, "DESCRIPTION \"FreeType 2 DLL\"\n" );
+++        fprintf( out, "DATA MULTIPLE\n" );
+++        fprintf( out, "EXPORTS\n" );
+++        for ( nn = 0; nn < num_names; nn++ )
+++          fprintf( out, "  _%s\n", the_names[nn].name );
+++        }
+++      break;
+++
++     default:  /* LIST */
++       for ( nn = 0; nn < num_names; nn++ )
++         fprintf( out, "%s\n", the_names[nn].name );
++@@ -311,6 +350,7 @@
++    "           -w     : output .DEF file for Visual C++ and Mingw\n"
++    "           -wB    : output .DEF file for Borland C++\n"
++    "           -wW    : output Watcom Linker Response File\n"
+++   "           -wO    : output os2 .DEF filr for gcc\n"
++    "\n";
++ 
++   fprintf( stderr,
++@@ -392,6 +432,11 @@
++ 
++           case 'W':
++             format = OUTPUT_WATCOM_LBC;
+++            break;
+++
+++          case 'O':
+++          case 'o':
+++            format = OUTPUT_OS2_DEF;
++             break;
++ 
++           case 0:
