@@ -56,7 +56,7 @@ endif
   APINAMES_EXE := $(subst /,$(SEP),$(OBJ_DIR)/apinames$(E_BUILD))
 
   $(APINAMES_EXE): $(APINAMES_SRC)
-	  $(CCexe) $(TE)$@ $<
+	  $(CCexe) $(CCexe_CFLAGS) $(TE)$@ $< $(CCexe_LDFLAGS)
 
   .PHONY: symbols_list
 
@@ -71,8 +71,8 @@ ifeq ($(PLATFORM),os2)
 	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
 	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
 else
-	  @echo TT_New_Context >> $(EXPORTS_LIST)
-	  @echo TT_RunIns >> $(EXPORTS_LIST)
+ 	  @echo TT_New_Context >> $(EXPORTS_LIST)
+ 	  @echo TT_RunIns >> $(EXPORTS_LIST)
 endif
 
   $(PROJECT_LIBRARY): $(EXPORTS_LIST)

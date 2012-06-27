@@ -30,7 +30,7 @@ $(FTMODULE_H): $(MODULES_CFG)
 
 ifneq ($(findstring $(PLATFORM),dos win32 win16 os2),)
   OPEN_MODULE   := @echo$(space)'
-  CLOSE_MODULE  := ' >> $(subst /,$(SEP),$(FTMODULE_H))
+  CLOSE_MODULE  := '>> $(subst /,$(SEP),$(FTMODULE_H))
   REMOVE_MODULE := @-$(DELETE) $(subst /,$(SEP),$(FTMODULE_H))
 else
   OPEN_MODULE   := @echo "
@@ -64,7 +64,7 @@ endef
 # in the `module.mk' rules file.
 #
 OPEN_DRIVER  := $(OPEN_MODULE)FT_USE_MODULE(
-CLOSE_DRIVER := ) $(CLOSE_MODULE)
+CLOSE_DRIVER := )$(CLOSE_MODULE)
 
 ECHO_DRIVER      := @echo "* module:$(space)
 ECHO_DRIVER_DESC := (

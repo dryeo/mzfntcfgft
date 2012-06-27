@@ -188,43 +188,43 @@ names_dump( FILE*         out,
       }
       break;
 
-    case OUTPUT_OS2_DEF:
-    {
-        /* we must omit the .dll suffix from the library name */
-        char         temp[512];
-        const char*  dot;
+      case OUTPUT_OS2_DEF:
+      {
+          /* we must omit the .dll suffix from the library name */
+          char         temp[512];
+          const char*  dot;
 
 
-        if ( dll_name == NULL )
-        {
-          fprintf( stderr,
-                   "you must provide a DLL name with the -d option!\n" );
-          exit( 4 );
-        }
+          if ( dll_name == NULL )
+          {
+            fprintf( stderr,
+                     "you must provide a DLL name with the -d option!\n" );
+            exit( 4 );
+          }
 
-        dot = strchr( dll_name, '.' );
-        if ( dot != NULL )
-        {
-          int  len = dot - dll_name;
+          dot = strchr( dll_name, '.' );
+          if ( dot != NULL )
+          {
+            int  len = dot - dll_name;
 
 
-          if ( len > (int)( sizeof ( temp ) - 1 ) )
-            len = sizeof ( temp ) - 1;
+            if ( len > (int)( sizeof ( temp ) - 1 ) )
+              len = sizeof ( temp ) - 1;
 
-          memcpy( temp, dll_name, len );
-          temp[len] = 0;
+            memcpy( temp, dll_name, len );
+            temp[len] = 0;
 
-          dll_name = (const char*)temp;
-        }
+            dll_name = (const char*)temp;
+          }
 
-        fprintf( out, "LIBRARY %s INITINSTANCE TERMINSTANCE\n", dll_name );
-        fprintf( out, "DESCRIPTION \"FreeType 2 DLL\"\n" );
-        fprintf( out, "DATA MULTIPLE\n" );
-        fprintf( out, "EXPORTS\n" );
-        for ( nn = 0; nn < num_names; nn++ )
-          fprintf( out, "  _%s\n", the_names[nn].name );
-        }
-      break;
+          fprintf( out, "LIBRARY %s INITINSTANCE TERMINSTANCE\n", dll_name );
+          fprintf( out, "DESCRIPTION \"FreeType 2 DLL\"\n" );
+          fprintf( out, "DATA MULTIPLE\n" );
+          fprintf( out, "EXPORTS\n" );
+          for ( nn = 0; nn < num_names; nn++ )
+            fprintf( out, "  _%s\n", the_names[nn].name );
+          }
+        break;
 
     default:  /* LIST */
       for ( nn = 0; nn < num_names; nn++ )
@@ -350,7 +350,7 @@ usage( void )
    "           -w     : output .DEF file for Visual C++ and Mingw\n"
    "           -wB    : output .DEF file for Borland C++\n"
    "           -wW    : output Watcom Linker Response File\n"
-   "           -wO    : output os2 .DEF filr for gcc\n"
+   "           -wO    : output os2 .DEF file for gcc\n"
    "\n";
 
   fprintf( stderr,
@@ -437,7 +437,6 @@ int  main( int argc, const char* const*  argv )
           case 'O':
           case 'o':
             format = OUTPUT_OS2_DEF;
-            break;
 
           case 0:
             break;
