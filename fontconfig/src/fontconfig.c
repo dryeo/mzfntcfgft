@@ -1254,12 +1254,15 @@ fcExport FcBool FcFontSetAdd(FcFontSet *fs, FcPattern *pat)
 
 fcExport FcFontSet *FcFontList(FcConfig *config, FcPattern *p, FcObjectSet *os)
 {
-  // This is a stub.
-
   // We assume that the we either have to list all fonts (pat.family==NULL),
   // or we have to list a given family (pat.family!=NULL),
   // and only their FC_FAMILY property will be queried before
   // the font list is destroyed.
+    if (!pConfig)
+    {
+	if (!FcInitBringUptoDate ())
+	    return 0;
+    }
 
   FcFontSet *result = FcFontSetCreate();
 
