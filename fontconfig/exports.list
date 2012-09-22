@@ -41,3 +41,8 @@ EXPORTS
      _FcPatternBuild
      _FcPatternAdd
      _FcPatternAddWeak
+     _FcPatternGetLangSet
+     _FcLangSetCreate
+     _FcLangSetAdd
+     _FcLangSetContains
+     _FcLangSetDestroy
