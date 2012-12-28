@@ -10,16 +10,17 @@ environment variables set. Please follow the guide at
 how to do this.
 
 Move the whole directory containing this package where you want it installed
-and then run
-   make -s
-   make clean
-This compiles all files, collects the object files into mzfntcfg.lib and mozft.lib
-and adapts the installation to your directory tree. Then it removes the unnecessary
-object files.
-(If for whatever reason you want to recompile everything, do
-   make -s nuke all
-   make clean
-This comes in handy on GCC upgrades.)
+then cd to the fontconfig directory and do make. Fontconfig\objs will contain
+the libraries. At this point copy fontconfig_s.a for static linking or fontconfig.lib
+to mzfntcfg.a or mzfntcfg.lib in the lib directory.
+Then cd to the freetype directory and do make which should correctly
+detect OS/2, then do make again to do the actual build (after the initial
+detection make only needs to be run once). Once again go to the freetype\objs
+directory and copy either freetype_s.a for static linking or freetype.lib to lib\mozft.a or mozft.lib
+depending on the original library name.
+For using in other products double check the lib\pkgconfig pc files for
+correct prefix and set PKG_CONFIG_PATH to point to the location of the
+pc files. eg SET PKG_CONFIG_PATH=g:/mzfntcfgft/lib/pkgconfig;%PKG_CONFIG_PATH%
 
 Now be sure to also adapt the MZFNTCFGFT variable in your setmozenv.cmd, so
 that this package can be used by the Mozilla build process. In case your
@@ -55,6 +56,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20121227  - Various fixes to use the latest for building Mozilla apps
 20121221  - Update to Freetype 2.4.11
 20120522  - Updated Fontconfig to build nicely static and dynamic in one go
 20120522  - Seperate the Fontconfig part
