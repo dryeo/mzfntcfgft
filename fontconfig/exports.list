@@ -35,6 +35,7 @@ EXPORTS
      _FcConfigUptoDate
      _FcLangSetHasLang
      _FcConfigGetFonts
+     _FcConfigGetCurrent
      _FcStrCmpIgnoreCase
      _FcPatternReference
      _FcPatternDuplicate
