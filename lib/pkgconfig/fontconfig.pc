@@ -2,10 +2,10 @@
 prefix=/mzfntcfgft
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
-includedir=${exec_prefix}/include
+includedir=${exec_prefix}/fontconfig/include
 
 Name: FONTCONFIG
-Description: Provides FontConfig and Freetype
+Description: Provides FontConfig
 Version: 2.4.0
-Libs: -L${libdir} -lmozft -lmzfntcfg"
+Libs: -L${libdir} -lmzfntcfg
 Cflags: -I${includedir}
