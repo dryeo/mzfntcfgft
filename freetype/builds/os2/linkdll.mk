@@ -39,7 +39,7 @@ ifdef BUILD_PROJECT
 $(OBJ_DIR)/$(OS2DLLNAME): $(OBJECTS_LIST)
 	rm -f $(OBJ_DIR)/$(PROJECT).a
 	ar cru $(OBJ_DIR)/$(PROJECT)_s.a $(OBJECTS_LIST)
-	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zdll $(EXPORTS_LIST) -o $@ $(OBJECTS_LIST) 
+	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zmap -Zdll $(EXPORTS_LIST) -o $@ $(OBJECTS_LIST) 
 	emximp -o $(OBJ_DIR)/$(PROJECT).a $(EXPORTS_LIST)
 	emximp -o $(OBJ_DIR)/$(PROJECT).lib $(EXPORTS_LIST)
 #	cp $@ $(OBJ_DIR)

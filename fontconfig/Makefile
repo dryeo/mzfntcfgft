@@ -25,7 +25,7 @@ $(FONTCONFIG_DLL): $(FONTCONFIG_OBJS)
 	   >> $(FONTCONFIG_NAME).def
 	cat ./exports.list >> $(FONTCONFIG_NAME).def
 
-	$(CC) -g -Zbin-files -Zhigh-mem -Zomf -Zdll $(FONTCONFIG_DLLFLAGS) -o $@ \
+	$(CC) -g -Zbin-files -Zhigh-mem -Zomf -Zmap -Zdll $(FONTCONFIG_DLLFLAGS) -o $@ \
 	      $(FONTCONFIG_NAME).def $^
 	ar cru $(FONTCONFIG_NAME)_s.a $(FONTCONFIG_OBJS)
 	emximp -o $(FONTCONFIG_NAME).a $(FONTCONFIG_NAME).def
