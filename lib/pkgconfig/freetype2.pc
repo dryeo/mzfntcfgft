@@ -1,11 +1,12 @@
-
 prefix=/mzfntcfgft
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
-includedir=${exec_prefix}/include
+includedir=${prefix}/freetype/include
 
-Name: Freetype2
-Description: Provides FontConfig and Freetype
-Version: 14.0.8
-Libs: -L${libdir} -lmozft -lmzfntcfg"
-Cflags: -I${includedir}
+Name: FreeType 2
+Description: A free, high-quality, and portable font engine.
+Version: 16.0.10
+Requires:
+Libs: -L${libdir} -lmozft
+Libs.private:  
+Cflags: -I${includedir}/freetype2 -I${includedir}

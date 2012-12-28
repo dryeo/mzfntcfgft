@@ -55,6 +55,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20121221  - Update to Freetype 2.4.11
 20120522  - Updated Fontconfig to build nicely static and dynamic in one go
 20120522  - Seperate the Fontconfig part
 20120521  - Updated Freetype to build nicely static and dynamic in one go
