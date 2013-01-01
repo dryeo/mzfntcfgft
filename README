@@ -9,15 +9,13 @@ environment variables set. Please follow the guide at
    https://developer.mozilla.org/En/Developer_Guide/Build_Instructions/OS//2_Build_Prerequisites/Building_on_OS//2_using_Mercurial
 how to do this.
 
-Move the whole directory containing this package where you want it installed
-then cd to the fontconfig directory and do make. Fontconfig\objs will contain
-the libraries. At this point copy fontconfig_s.a for static linking or fontconfig.lib
-to mzfntcfg.a or mzfntcfg.lib in the lib directory.
-Then cd to the freetype directory and do make which should correctly
-detect OS/2, then do make again to do the actual build (after the initial
-detection make only needs to be run once). Once again go to the freetype\objs
-directory and copy either freetype_s.a for static linking or freetype.lib to lib\mozft.a or mozft.lib
-depending on the original library name.
+Move the whole directory containing this package where you want it installed.
+First Freetype has to be built by cding to the freetype directory and doing make twice.
+The first make will set things up for using the OS/2 make files in freetype\build and the second make will build the libraries.
+Subsequant builds will only need make invoked once.
+Then go to freetype\objs and copy either freetype_s.a for static building or freetype.lib to lib\mozft.a or moft.lib depending on the original library name.
+Then go to the fontconfig directory and do make to build the fontconfig libraries. Once again copy the correct fontconfig library to lib\mzfntcfg.a or lib\mzfntcfg.lib
+
 For using in other products double check the lib\pkgconfig pc files for
 correct prefix and set PKG_CONFIG_PATH to point to the location of the
 pc files. eg SET PKG_CONFIG_PATH=g:/mzfntcfgft/lib/pkgconfig;%PKG_CONFIG_PATH%
