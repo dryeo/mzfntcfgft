@@ -9,7 +9,6 @@ lib/*.a
 src/*.a
 src/fontconfig_*
 src/*.def
-Jamfile
 syntax: regexp
 \.swp$
 \.swo$
