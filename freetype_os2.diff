@@ -140,8 +140,8 @@ diff -Naur --binary I:\usr\src\freetype-2.4.12/builds/os2/os2-def.mk G:\mzfntcfg
  #
 diff -Naur --binary I:\usr\src\freetype-2.4.12/builds/os2/os2-gcc.mk G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk
 --- I:\usr\src\freetype-2.4.12/builds/os2/os2-gcc.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2012-12-21 20:36:20.000000000 -0800
-@@ -12,15 +12,25 @@
++++ G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2013-05-16 22:12:18.000000000 -0700
+@@ -12,15 +12,26 @@
  # indicate that you have read the license and understand and accept it
  # fully.
  
@@ -157,7 +157,8 @@ diff -Naur --binary I:\usr\src\freetype-2.4.12/builds/os2/os2-gcc.mk G:\mzfntcfg
  
  # include gcc-specific definitions
  include $(TOP_DIR)/builds/compiler/gcc.mk
-+CFLAGS +=-D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
++# note the -DFT_CONFIG_OPTION_OLD_INTERNALS is a temporary fix to be removed after 2.1.12
++CFLAGS +=-DFT_CONFIG_OPTION_OLD_INTERNALS -D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
  
  # include linking instructions
 +ifeq ($(DLL),yes)
@@ -168,46 +169,6 @@ diff -Naur --binary I:\usr\src\freetype-2.4.12/builds/os2/os2-gcc.mk G:\mzfntcfg
 +endif
  
  # EOF
-diff -Naur --binary I:\usr\src\freetype-2.4.12/config.mk G:\mzfntcfgft\freetype/config.mk
---- I:\usr\src\freetype-2.4.12/config.mk	2106-02-06 22:28:16.000000000 
-+++ G:\mzfntcfgft\freetype/config.mk	2013-05-09 22:29:10.000000000 -0700
-@@ -0,0 +1,36 @@
-+#
-+# FreeType 2 configuration rules for the OS/2 + gcc
-+#
-+
-+
-+# Copyright 1996-2000 by
-+# David Turner, Robert Wilhelm, and Werner Lemberg.
-+#
-+# This file is part of the FreeType project, and may only be used, modified,
-+# and distributed under the terms of the FreeType project license,
-+# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-+# indicate that you have read the license and understand and accept it
-+# fully.
-+
-+# default definitions of the export list
-+#
-+OS2DLLNAME        = freetyp2.dll
-+EXPORTS_LIST      = $(OBJ_DIR)/freetype.def
-+EXPORTS_OPTIONS   = $(EXPORTS_LIST)
-+APINAMES_OPTIONS := -d$(OS2DLLNAME) -wO
-+
-+# include OS/2-specific definitions
-+include $(TOP_DIR)/builds/os2/os2-def.mk
-+
-+# include gcc-specific definitions
-+include $(TOP_DIR)/builds/compiler/gcc.mk
-+CFLAGS +=-D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
-+
-+# include linking instructions
-+ifeq ($(DLL),yes)
-+  include $(TOP_DIR)/builds/os2/linkdll.mk
-+else
-+include $(TOP_DIR)/builds/link_dos.mk
-+endif
-+
-+# EOF
 diff -Naur --binary I:\usr\src\freetype-2.4.12/src/cache/ftcmanag.diff G:\mzfntcfgft\freetype/src/cache/ftcmanag.diff
 --- I:\usr\src\freetype-2.4.12/src/cache/ftcmanag.diff	2106-02-06 22:28:16.000000000 
 +++ G:\mzfntcfgft\freetype/src/cache/ftcmanag.diff	2013-05-09 23:32:26.000000000 -0700
