@@ -25,7 +25,7 @@ include $(TOP_DIR)/builds/os2/os2-def.mk
 # include gcc-specific definitions
 include $(TOP_DIR)/builds/compiler/gcc.mk
 # note the -DFT_CONFIG_OPTION_OLD_INTERNALS is a temporary fix to be removed after 2.1.12
-CFLAGS +=-DFT_CONFIG_OPTION_OLD_INTERNALS -mtune=generic -march=i686
+CFLAGS +=-DFT_CONFIG_OPTION_OLD_INTERNALS -D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
 
 # include linking instructions
 ifeq ($(DLL),yes)

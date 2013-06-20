@@ -54,6 +54,8 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20130619  - Update to Freetype 2.5.0.1
+20130619  - Remove -DFTCONFIG_OPTION_OLD_INTERNALS
 20130516  - Temporarily add -DFT_CONFIG_OPTION_OLD_INTERNALS to fix build
 20130516  - Update to Freetype 2.4.12
 20130206  - Add tag Gecko_10_12_Release for the revision used for 10.12ESR
