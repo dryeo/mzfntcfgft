@@ -361,7 +361,7 @@ usage( void )
    "           -w     : output .DEF file for Visual C++ and Mingw\n"
    "           -wB    : output .DEF file for Borland C++\n"
    "           -wW    : output Watcom Linker Response File\n"
-   "           -wO    : ouput os2 .DEF file for GCC\n"
+   "           -wO    : ouput OS/2 .DEF file for GCC\n"
    "           -wN    : output NetWare Import File\n"
    "\n";
 
@@ -453,7 +453,7 @@ int  main( int argc, const char* const*  argv )
           case 'O':
           case 'o':
             format = OUTPUT_OS2_DEF;
-             break;
+            break;
 
           case 0:
             break;
