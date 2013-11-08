@@ -603,3 +603,41 @@ fcExport FcBool FcPatternAddWeak (FcPattern *p, const char *object,
   return rc;
 }
 
+FcChar32 FcStringHash (const FcChar8 *s)
+{
+    FcChar8	c;
+    FcChar32	h = 0;
+    
+    if (s)
+	while ((c = *s++))
+	    h = ((h << 1) | (h >> 31)) ^ c;
+    return h;
+}
+
+#define OBJECT_HASH_SIZE    31
+static struct objectBucket {
+    struct objectBucket	*next;
+    FcChar32		hash;
+} *FcObjectBuckets[OBJECT_HASH_SIZE];
+
+const FcChar8* FcStrStaticName (const FcChar8 *name)
+{
+    FcChar32		hash = FcStringHash (name);
+    struct objectBucket	**p;
+    struct objectBucket	*b;
+    int			size;
+
+    for (p = &FcObjectBuckets[hash % OBJECT_HASH_SIZE]; (b = *p); p = &(b->next))
+	if (b->hash == hash && !strcmp ((char *)name, (char *) (b + 1)))
+	    return (FcChar8 *) (b + 1);
+    size = sizeof (struct objectBucket) + strlen ((char *)name) + 1;
+    b = malloc (size + sizeof (int));
+    /* workaround glibc bug which reads strlen in groups of 4 */
+    if (!b)
+        return NULL;
+    b->next = 0;
+    b->hash = hash;
+    strcpy ((char *) (b + 1), (char *)name);
+    *p = b;
+    return (FcChar8 *) (b + 1);
+}

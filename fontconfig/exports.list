@@ -47,3 +47,4 @@ EXPORTS
      _FcLangSetAdd
      _FcLangSetContains
      _FcLangSetDestroy
+     _FcNameParse

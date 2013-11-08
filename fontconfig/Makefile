@@ -15,6 +15,8 @@ FONTCONFIG_OBJS := $(OBJS)/fontconfig.o \
 	$(OBJS)/fclang.o \
 	$(OBJS)/fcpat.o  \
 	$(OBJS)/fcstr.o \
+	$(OBJS)/fcname.o \
+	$(OBJS)/fccharset.o \
 	$(NULL)
 
 $(FONTCONFIG_DLL): $(FONTCONFIG_OBJS)
@@ -44,6 +46,14 @@ $(OBJS)/fcpat.o: $(SRC)/fcpat.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJS)/fcstr.o: $(SRC)/fcstr.c
+	@echo $<
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJS)/fcname.o: $(SRC)/fcname.c
+	@echo $<
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJS)/fccharset.o: $(SRC)/fccharset.c
 	@echo $<
 	$(CC) $(CFLAGS) -c -o $@ $<
 

@@ -155,6 +155,20 @@ struct _FcStrList {
 };
 
 #define FC_REF_CONSTANT	    -1
+/* Given base address, offset and type, return a pointer */
+#define FcOffsetToPtr(b,o,t)	((t *) ((intptr_t) (b) + (o)))
+/* Compute pointer offset */
+#define FcPtrToOffset(b,p)	((intptr_t) (p) - (intptr_t) (b))
+/* Given a structure, offset member and type, return pointer */
+#define FcOffsetMember(s,m,t)	    FcOffsetToPtr(s,(s)->m,t)
+
+#define FcCharSetLeaves(c)	FcOffsetMember(c,leaves_offset,intptr_t)
+#define FcCharSetLeaf(c,i)	(FcOffsetToPtr(FcCharSetLeaves(c), \
+					       FcCharSetLeaves(c)[i], \
+					       FcCharLeaf))
+#define FcCharSetNumbers(c)	FcOffsetMember(c,numbers_offset,FcChar16)
+
+typedef int FcObject;
 
 void *pConfig;
 

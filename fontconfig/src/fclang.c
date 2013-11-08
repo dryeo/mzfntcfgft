@@ -395,3 +395,34 @@ FcBool FcLangSetContains (const FcLangSet *lsa, const FcLangSet *lsb)
     return FcTrue;
 }
 
+FcLangSet* FcNameParseLangSet (const FcChar8 *string)
+{
+    FcChar8	    lang[32], c = 0;
+    int i;
+    FcLangSet	    *ls;
+
+    ls = FcLangSetCreate ();
+    if (!ls)
+	goto bail0;
+
+    for(;;)
+    {
+	for(i = 0; i < 31;i++)
+	{
+	    c = *string++;
+	    if(c == '\0' || c == '|')
+		break; /* end of this code */
+	    lang[i] = c;
+	}
+	lang[i] = '\0';
+	if (!FcLangSetAdd (ls, lang))
+	    goto bail1;
+	if(c == '\0')
+	    break;
+    }
+    return ls;
+bail1:
+    FcLangSetDestroy (ls);
+bail0:
+    return 0;
+}
