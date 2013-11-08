@@ -37,6 +37,8 @@ of the packages
 Both are part of the *dependencies* packages on <ftp://ftp.netlabs.org/pub/Cairo/>.
    freetype-2.4.9.tar.bz2 (from http://sourceforge.net/projects/freetype/files/freetype2/2.4.9/)
 
+Current sources are hosted at https://bitbucket.org/dryeo/mzfntcfgft
+
 
 - Using the library
 If you built a Mozilla application with SVG support or if you compile a current
@@ -54,6 +56,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20131107  - Add FcNameParse() Patch by Silvan Scherrer
 20130619  - Update to Freetype 2.5.0.1
 20130619  - Remove -DFTCONFIG_OPTION_OLD_INTERNALS
 20130516  - Temporarily add -DFT_CONFIG_OPTION_OLD_INTERNALS to fix build
