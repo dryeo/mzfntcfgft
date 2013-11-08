@@ -24,7 +24,7 @@ include $(TOP_DIR)/builds/os2/os2-def.mk
 
 # include gcc-specific definitions
 include $(TOP_DIR)/builds/compiler/gcc.mk
-CFLAGS +=-DOS2 -march=pentium -mtune=pentium4
+CFLAGS +=-DOS2 -mtune=generic -march=i686
 
 # include linking instructions
 ifeq ($(DLL),yes)

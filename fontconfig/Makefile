@@ -9,7 +9,7 @@ FONTCONFIG_DLL= $(OBJS)/$(PROJECT).dll
 FONTCONFIG_DLLFLAGS = -lfreetype.a -L../freetype/objs
 INCLUDES = -I./include -I ../freetype/include
 
-CFLAGS += $(INCLUDES) -D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
+CFLAGS += $(INCLUDES) -DOS2 -mtune=generic -march=i686
 
 FONTCONFIG_OBJS := $(OBJS)/fontconfig.o \
 	$(OBJS)/fclang.o \
