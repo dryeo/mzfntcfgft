@@ -90,6 +90,7 @@ ifeq ($(findstring ansi,$(MAKECMDGOALS)),)
   # directories.  Note that the calling order of the various `detect.mk'
   # files isn't predictable.
   #
+  include $(BUILD_CONFIG)/os2/detect.mk
   include $(wildcard $(BUILD_CONFIG)/*/detect.mk)
 endif
 
