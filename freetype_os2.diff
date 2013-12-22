@@ -1,6 +1,17 @@
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/exports.mk G:\mzfntcfgft\freetype/builds/exports.mk
---- G:\usr\src\freetype-2.5.0.1/builds/exports.mk	2012-08-14 00:47:08.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/exports.mk	2013-06-19 20:17:22.000000000 -0700
+diff -Naur G:\usr\src\freetype-2.5.2/builds/detect.mk G:\mzfntcfgft\freetype/builds/detect.mk
+--- G:\usr\src\freetype-2.5.2/builds/detect.mk	2013-11-12 03:50:40.000000000 -0800
++++ G:\mzfntcfgft\freetype/builds/detect.mk	2013-12-21 21:10:40.000000000 -0800
+@@ -90,6 +90,7 @@
+   # directories.  Note that the calling order of the various `detect.mk'
+   # files isn't predictable.
+   #
++  include $(BUILD_CONFIG)/os2/detect.mk
+   include $(wildcard $(BUILD_CONFIG)/*/detect.mk)
+ endif
+ 
+diff -Naur G:\usr\src\freetype-2.5.2/builds/exports.mk G:\mzfntcfgft\freetype/builds/exports.mk
+--- G:\usr\src\freetype-2.5.2/builds/exports.mk	2012-08-14 00:47:08.000000000 -0700
++++ G:\mzfntcfgft\freetype/builds/exports.mk	2013-12-21 21:10:40.000000000 -0800
 @@ -40,7 +40,12 @@
    endif
  
@@ -30,9 +41,9 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/exports.mk G:\mzfntcfgft\
  
    $(PROJECT_LIBRARY): $(EXPORTS_LIST)
  
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/modules.mk G:\mzfntcfgft\freetype/builds/modules.mk
---- G:\usr\src\freetype-2.5.0.1/builds/modules.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/modules.mk	2013-06-19 20:17:22.000000000 -0700
+diff -Naur G:\usr\src\freetype-2.5.2/builds/modules.mk G:\mzfntcfgft\freetype/builds/modules.mk
+--- G:\usr\src\freetype-2.5.2/builds/modules.mk	2009-03-14 06:45:26.000000000 -0700
++++ G:\mzfntcfgft\freetype/builds/modules.mk	2013-12-21 21:10:40.000000000 -0800
 @@ -29,8 +29,8 @@
  	$(FTMODULE_H_DONE)
  
@@ -44,9 +55,9 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/modules.mk G:\mzfntcfgft\
    REMOVE_MODULE := @-$(DELETE) $(subst /,$(SEP),$(FTMODULE_H))
  else
    OPEN_MODULE   := @echo "
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/detect.mk G:\mzfntcfgft\freetype/builds/os2/detect.mk
---- G:\usr\src\freetype-2.5.0.1/builds/os2/detect.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/detect.mk	2013-06-19 20:17:22.000000000 -0700
+diff -Naur G:\usr\src\freetype-2.5.2/builds/os2/detect.mk G:\mzfntcfgft\freetype/builds/os2/detect.mk
+--- G:\usr\src\freetype-2.5.2/builds/os2/detect.mk	2009-03-14 06:45:26.000000000 -0700
++++ G:\mzfntcfgft\freetype/builds/os2/detect.mk	2013-12-21 21:10:40.000000000 -0800
 @@ -65,7 +65,17 @@
      .PHONY: devel
    endif
@@ -66,62 +77,9 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/detect.mk G:\mzfntcfg
  
  endif   # test PLATFORM os2
  
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/linkdll.mk G:\mzfntcfgft\freetype/builds/os2/linkdll.mk
---- G:\usr\src\freetype-2.5.0.1/builds/os2/linkdll.mk	2106-02-06 22:28:16.000000000 
-+++ G:\mzfntcfgft\freetype/builds/os2/linkdll.mk	2013-06-19 20:17:22.000000000 -0700
-@@ -0,0 +1,49 @@
-+#
-+# FreeType 2 configuration rules for OS/2; gcc and dll
-+#
-+
-+
-+# Copyright 1996-2000 by
-+# David Turner, Robert Wilhelm, and Werner Lemberg.
-+#
-+# This file is part of the FreeType project, and may only be used, modified,
-+# and distributed under the terms of the FreeType project license,
-+# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-+# indicate that you have read the license and understand and accept it
-+# fully.
-+#
-+#  Link instructions for standard systems
-+#
-+
-+
-+ifdef BUILD_PROJECT
-+
-+  .PHONY: clean_project distclean_project
-+
-+  # Now include the main sub-makefile.  It contains all the rules used to
-+  # build the library with the previous variables defined.
-+  #
-+  include $(TOP_DIR)/builds/$(PROJECT).mk
-+
-+  # The cleanup targets.
-+  #
-+  clean_project: clean_project_std
-+  distclean_project: distclean_project_std
-+
-+  # This final rule is used to link all object files into a single library.
-+  # this is compiler-specific
-+  #
-+  $(PROJECT_LIBRARY): $(OBJECTS_LIST) $(OBJ_DIR)/$(OS2DLLNAME)
-+
-+
-+$(OBJ_DIR)/$(OS2DLLNAME): $(OBJECTS_LIST)
-+	rm -f $(OBJ_DIR)/$(PROJECT).a
-+	ar cru $(OBJ_DIR)/$(PROJECT)_s.a $(OBJECTS_LIST)
-+	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zmap -Zdll $(EXPORTS_LIST) -o $@ $(OBJECTS_LIST) 
-+	emximp -o $(OBJ_DIR)/$(PROJECT).a $(EXPORTS_LIST)
-+	emximp -o $(OBJ_DIR)/$(PROJECT).lib $(EXPORTS_LIST)
-+#	cp $@ $(OBJ_DIR)
-+
-+endif
-+
-+# EOF
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/os2-def.mk G:\mzfntcfgft\freetype/builds/os2/os2-def.mk
---- G:\usr\src\freetype-2.5.0.1/builds/os2/os2-def.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-def.mk	2013-06-19 20:17:22.000000000 -0700
+diff -Naur G:\usr\src\freetype-2.5.2/builds/os2/os2-def.mk G:\mzfntcfgft\freetype/builds/os2/os2-def.mk
+--- G:\usr\src\freetype-2.5.2/builds/os2/os2-def.mk	2009-03-14 06:45:26.000000000 -0700
++++ G:\mzfntcfgft\freetype/builds/os2/os2-def.mk	2013-12-21 21:10:40.000000000 -0800
 @@ -18,6 +18,15 @@
  SEP       := $(strip \ )
  BUILD_DIR := $(TOP_DIR)/builds/os2
@@ -138,10 +96,10 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/os2-def.mk G:\mzfntcf
  
  # The executable file extension (for tools), *with* leading dot.
  #
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/os2-gcc.mk G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk
---- G:\usr\src\freetype-2.5.0.1/builds/os2/os2-gcc.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2013-06-19 20:17:22.000000000 -0700
-@@ -12,15 +12,26 @@
+diff -Naur G:\usr\src\freetype-2.5.2/builds/os2/os2-gcc.mk G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk
+--- G:\usr\src\freetype-2.5.2/builds/os2/os2-gcc.mk	2009-03-14 06:45:26.000000000 -0700
++++ G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2013-12-21 21:10:40.000000000 -0800
+@@ -12,15 +12,25 @@
  # indicate that you have read the license and understand and accept it
  # fully.
  
@@ -157,8 +115,7 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/os2-gcc.mk G:\mzfntcf
  
  # include gcc-specific definitions
  include $(TOP_DIR)/builds/compiler/gcc.mk
-+# note the -DFT_CONFIG_OPTION_OLD_INTERNALS is a temporary fix to be removed after 2.1.12
-+CFLAGS +=-DFT_CONFIG_OPTION_OLD_INTERNALS -D__EMX__ -DOS2  -D__OS2__ -D__ST_MT_ERRNO__ -march=pentium -mtune=pentium4
++CFLAGS +=-DOS2 -mtune=generic -march=i686
  
  # include linking instructions
 +ifeq ($(DLL),yes)
@@ -169,50 +126,9 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/builds/os2/os2-gcc.mk G:\mzfntcf
 +endif
  
  # EOF
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/config.mk G:\mzfntcfgft\freetype/config.mk
---- G:\usr\src\freetype-2.5.0.1/config.mk	2106-02-06 22:28:16.000000000 
-+++ G:\mzfntcfgft\freetype/config.mk	2013-05-16 22:39:36.000000000 -0700
-@@ -0,0 +1,37 @@
-+#
-+# FreeType 2 configuration rules for the OS/2 + gcc
-+#
-+
-+
-+# Copyright 1996-2000 by
-+# David Turner, Robert Wilhelm, and Werner Lemberg.
-+#
-+# This file is part of the FreeType project, and may only be used, modified,
-+# and distributed under the terms of the FreeType project license,
-+# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-+# indicate that you have read the license and understand and accept it
-+# fully.
-+
-+# default definitions of the export list
-+#
-+OS2DLLNAME        = freetyp2.dll
-+EXPORTS_LIST      = $(OBJ_DIR)/freetype.def
-+EXPORTS_OPTIONS   = $(EXPORTS_LIST)
-+APINAMES_OPTIONS := -d$(OS2DLLNAME) -wO
-+
-+# include OS/2-specific definitions
-+include $(TOP_DIR)/builds/os2/os2-def.mk
-+
-+# include gcc-specific definitions
-+include $(TOP_DIR)/builds/compiler/gcc.mk
-+# note the -DFT_CONFIG_OPTION_OLD_INTERNALS is a temporary fix to be removed after 2.1.12
-+CFLAGS +=-DFT_CONFIG_OPTION_OLD_INTERNALS -mtune=generic -march=i686
-+
-+# include linking instructions
-+ifeq ($(DLL),yes)
-+  include $(TOP_DIR)/builds/os2/linkdll.mk
-+else
-+include $(TOP_DIR)/builds/link_dos.mk
-+endif
-+
-+# EOF
-diff -Naur --binary G:\usr\src\freetype-2.5.0.1/src/tools/apinames.c G:\mzfntcfgft\freetype/src/tools/apinames.c
---- G:\usr\src\freetype-2.5.0.1/src/tools/apinames.c	2013-06-04 00:56:02.000000000 -0700
-+++ G:\mzfntcfgft\freetype/src/tools/apinames.c	2013-06-19 20:42:56.000000000 -0700
+diff -Naur G:\usr\src\freetype-2.5.2/src/tools/apinames.c G:\mzfntcfgft\freetype/src/tools/apinames.c
+--- G:\usr\src\freetype-2.5.2/src/tools/apinames.c	2013-06-04 00:56:02.000000000 -0700
++++ G:\mzfntcfgft\freetype/src/tools/apinames.c	2013-12-21 21:10:40.000000000 -0800
 @@ -32,6 +32,7 @@
    OUTPUT_WINDOWS_DEF,   /* output a Windows .DEF file for Visual C++ or Mingw */
    OUTPUT_BORLAND_DEF,   /* output a Windows .DEF file for Borland C++         */
@@ -270,7 +186,7 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/src/tools/apinames.c G:\mzfntcfg
     "           -w     : output .DEF file for Visual C++ and Mingw\n"
     "           -wB    : output .DEF file for Borland C++\n"
     "           -wW    : output Watcom Linker Response File\n"
-+   "           -wO    : ouput os2 .DEF file for GCC\n"
++   "           -wO    : ouput OS/2 .DEF file for GCC\n"
     "           -wN    : output NetWare Import File\n"
     "\n";
  
@@ -281,7 +197,7 @@ diff -Naur --binary G:\usr\src\freetype-2.5.0.1/src/tools/apinames.c G:\mzfntcfg
 +          case 'O':
 +          case 'o':
 +            format = OUTPUT_OS2_DEF;
-+             break;
++            break;
 +
            case 0:
              break;

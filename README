@@ -56,6 +56,7 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20131221  - Update to Freetype 2.5.2
 20131107  - Add FcNameParse() Patch by Silvan Scherrer
 20130619  - Update to Freetype 2.5.0.1
 20130619  - Remove -DFTCONFIG_OPTION_OLD_INTERNALS
