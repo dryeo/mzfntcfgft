@@ -1,257 +1,257 @@
-diff -Naur G:\usr\src\freetype-2.5.3/builds/detect.mk G:\mzfntcfgft\freetype/builds/detect.mk
---- G:\usr\src\freetype-2.5.3/builds/detect.mk	2013-11-12 03:50:40.000000000 -0800
-+++ G:\mzfntcfgft\freetype/builds/detect.mk	2014-03-29 21:47:12.000000000 -0700
-@@ -90,6 +90,7 @@
+diff -Naur \mzfntcfgft\freetype/builds/detect.mk \usr\local\src\freetype/builds/detect.mk
+--- \mzfntcfgft\freetype/builds/detect.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/detect.mk	2014-11-26 22:15:24.000000000 -0800
+@@ -90,7 +90,6 @@
    # directories.  Note that the calling order of the various `detect.mk'
    # files isn't predictable.
    #
-+  include $(BUILD_CONFIG)/os2/detect.mk
+-  include $(BUILD_CONFIG)/os2/detect.mk
    include $(wildcard $(BUILD_CONFIG)/*/detect.mk)
  endif
  
-diff -Naur G:\usr\src\freetype-2.5.3/builds/exports.mk G:\mzfntcfgft\freetype/builds/exports.mk
---- G:\usr\src\freetype-2.5.3/builds/exports.mk	2012-08-14 00:47:08.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/exports.mk	2014-03-29 21:49:32.000000000 -0700
-@@ -40,7 +40,12 @@
+diff -Naur \mzfntcfgft\freetype/builds/exports.mk \usr\local\src\freetype/builds/exports.mk
+--- \mzfntcfgft\freetype/builds/exports.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/exports.mk	2012-08-14 00:47:08.000000000 -0700
+@@ -40,12 +40,7 @@
    endif
  
    # The list of public headers we're going to parse.
-+ifeq ($(PLATFORM),os2)
-+  PUBLIC_HEADERS1 := $(wildcard $(PUBLIC_DIR)/*.h)
-+  PUBLIC_HEADERS = $(filter-out $(PUBLIC_DIR)/ftmac.h, $(PUBLIC_HEADERS1))
-+else
+-ifeq ($(PLATFORM),os2)
+-  PUBLIC_HEADERS1 := $(wildcard $(PUBLIC_DIR)/*.h)
+-  PUBLIC_HEADERS = $(filter-out $(PUBLIC_DIR)/ftmac.h, $(PUBLIC_HEADERS1))
+-else
    PUBLIC_HEADERS := $(wildcard $(PUBLIC_DIR)/*.h)
-+endf
+-endf
  
    # The `apinames' source and executable.  We use $E_BUILD as the host
    # executable suffix, which *includes* the final dot.
-@@ -62,8 +67,13 @@
+@@ -67,13 +62,8 @@
    #
    $(EXPORTS_LIST): $(APINAMES_EXE) $(PUBLIC_HEADERS)
  	  $(subst /,$(SEP),$(APINAMES_EXE)) -o$@ $(APINAMES_OPTIONS) $(PUBLIC_HEADERS)
--	  @echo TT_New_Context >> $(EXPORTS_LIST)
--	  @echo TT_RunIns >> $(EXPORTS_LIST)
-+ifeq ($(PLATFORM),os2)
-+	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
-+	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
-+else
-+ 	  @echo TT_New_Context >> $(EXPORTS_LIST)
-+ 	  @echo TT_RunIns >> $(EXPORTS_LIST)
-+endif
+-ifeq ($(PLATFORM),os2)
+-	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
+-	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
+-else
+- 	  @echo TT_New_Context >> $(EXPORTS_LIST)
+- 	  @echo TT_RunIns >> $(EXPORTS_LIST)
+-endif
++	  @echo TT_New_Context >> $(EXPORTS_LIST)
++	  @echo TT_RunIns >> $(EXPORTS_LIST)
  
    $(PROJECT_LIBRARY): $(EXPORTS_LIST)
  
-diff -Naur G:\usr\src\freetype-2.5.3/builds/modules.mk G:\mzfntcfgft\freetype/builds/modules.mk
---- G:\usr\src\freetype-2.5.3/builds/modules.mk	2014-02-07 21:45:46.000000000 -0800
-+++ G:\mzfntcfgft\freetype/builds/modules.mk	2014-03-29 21:49:32.000000000 -0700
+diff -Naur \mzfntcfgft\freetype/builds/modules.mk \usr\local\src\freetype/builds/modules.mk
+--- \mzfntcfgft\freetype/builds/modules.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/modules.mk	2014-11-19 13:36:24.000000000 -0800
 @@ -29,8 +29,8 @@
  	$(FTMODULE_H_DONE)
  
  ifneq ($(findstring $(PLATFORM),dos windows os2),)
--  OPEN_MODULE   := @echo$(space)
--  CLOSE_MODULE  :=  >> $(subst /,$(SEP),$(FTMODULE_H))
-+  OPEN_MODULE   := @echo$(space)'
-+  CLOSE_MODULE  := '>> $(subst /,$(SEP),$(FTMODULE_H))
+-  OPEN_MODULE   := @echo$(space)'
+-  CLOSE_MODULE  := '>> $(subst /,$(SEP),$(FTMODULE_H))
++  OPEN_MODULE   := @echo$(space)
++  CLOSE_MODULE  :=  >> $(subst /,$(SEP),$(FTMODULE_H))
    REMOVE_MODULE := @-$(DELETE) $(subst /,$(SEP),$(FTMODULE_H))
  else
    OPEN_MODULE   := @echo "
-diff -Naur G:\usr\src\freetype-2.5.3/builds/os2/detect.mk G:\mzfntcfgft\freetype/builds/os2/detect.mk
---- G:\usr\src\freetype-2.5.3/builds/os2/detect.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/detect.mk	2014-03-29 21:47:12.000000000 -0700
-@@ -65,7 +65,17 @@
+diff -Naur \mzfntcfgft\freetype/builds/os2/detect.mk \usr\local\src\freetype/builds/os2/detect.mk
+--- \mzfntcfgft\freetype/builds/os2/detect.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/os2/detect.mk	2009-03-14 06:45:26.000000000 -0700
+@@ -65,17 +65,7 @@
      .PHONY: devel
    endif
  
--  setup: dos_setup
-+  ifndef SHELL
-+    setup: dos_setup
-+  endif
-+
-+  ifdef SHELL
-+    COPY   := cp
-+    DELETE := rm
-+    CAT    := cat
-+    SEP    := /
-+    setup: std_setup
-+  endif
+-  ifndef SHELL
+-    setup: dos_setup
+-  endif
+-
+-  ifdef SHELL
+-    COPY   := cp
+-    DELETE := rm
+-    CAT    := cat
+-    SEP    := /
+-    setup: std_setup
+-  endif
++  setup: dos_setup
  
  endif   # test PLATFORM os2
  
-diff -Naur G:\usr\src\freetype-2.5.3/builds/os2/linkdll.mk G:\mzfntcfgft\freetype/builds/os2/linkdll.mk
---- G:\usr\src\freetype-2.5.3/builds/os2/linkdll.mk	1969-12-31 16:00:00.000000000 -0800
-+++ G:\mzfntcfgft\freetype/builds/os2/linkdll.mk	2014-03-29 21:47:12.000000000 -0700
-@@ -0,0 +1,49 @@
-+#
-+# FreeType 2 configuration rules for OS/2; gcc and dll
-+#
-+
-+
-+# Copyright 1996-2000 by
-+# David Turner, Robert Wilhelm, and Werner Lemberg.
-+#
-+# This file is part of the FreeType project, and may only be used, modified,
-+# and distributed under the terms of the FreeType project license,
-+# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-+# indicate that you have read the license and understand and accept it
-+# fully.
-+#
-+#  Link instructions for standard systems
-+#
-+
-+
-+ifdef BUILD_PROJECT
-+
-+  .PHONY: clean_project distclean_project
-+
-+  # Now include the main sub-makefile.  It contains all the rules used to
-+  # build the library with the previous variables defined.
-+  #
-+  include $(TOP_DIR)/builds/$(PROJECT).mk
-+
-+  # The cleanup targets.
-+  #
-+  clean_project: clean_project_std
-+  distclean_project: distclean_project_std
-+
-+  # This final rule is used to link all object files into a single library.
-+  # this is compiler-specific
-+  #
-+  $(PROJECT_LIBRARY): $(OBJECTS_LIST) $(OBJ_DIR)/$(OS2DLLNAME)
-+
-+
-+$(OBJ_DIR)/$(OS2DLLNAME): $(OBJECTS_LIST)
-+	rm -f $(OBJ_DIR)/$(PROJECT).a
-+	ar cru $(OBJ_DIR)/$(PROJECT)_s.a $(OBJECTS_LIST)
-+	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zmap -Zdll $(EXPORTS_LIST) -o $@ $(OBJECTS_LIST) 
-+	emximp -o $(OBJ_DIR)/$(PROJECT).a $(EXPORTS_LIST)
-+	emximp -o $(OBJ_DIR)/$(PROJECT).lib $(EXPORTS_LIST)
-+#	cp $@ $(OBJ_DIR)
-+
-+endif
-+
-+# EOF
-diff -Naur G:\usr\src\freetype-2.5.3/builds/os2/os2-def.mk G:\mzfntcfgft\freetype/builds/os2/os2-def.mk
---- G:\usr\src\freetype-2.5.3/builds/os2/os2-def.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-def.mk	2014-03-29 21:47:12.000000000 -0700
-@@ -18,6 +18,15 @@
+diff -Naur \mzfntcfgft\freetype/builds/os2/linkdll.mk \usr\local\src\freetype/builds/os2/linkdll.mk
+--- \mzfntcfgft\freetype/builds/os2/linkdll.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/os2/linkdll.mk	1969-12-31 16:00:00.000000000 -0800
+@@ -1,49 +0,0 @@
+-#
+-# FreeType 2 configuration rules for OS/2; gcc and dll
+-#
+-
+-
+-# Copyright 1996-2000 by
+-# David Turner, Robert Wilhelm, and Werner Lemberg.
+-#
+-# This file is part of the FreeType project, and may only be used, modified,
+-# and distributed under the terms of the FreeType project license,
+-# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
+-# indicate that you have read the license and understand and accept it
+-# fully.
+-#
+-#  Link instructions for standard systems
+-#
+-
+-
+-ifdef BUILD_PROJECT
+-
+-  .PHONY: clean_project distclean_project
+-
+-  # Now include the main sub-makefile.  It contains all the rules used to
+-  # build the library with the previous variables defined.
+-  #
+-  include $(TOP_DIR)/builds/$(PROJECT).mk
+-
+-  # The cleanup targets.
+-  #
+-  clean_project: clean_project_std
+-  distclean_project: distclean_project_std
+-
+-  # This final rule is used to link all object files into a single library.
+-  # this is compiler-specific
+-  #
+-  $(PROJECT_LIBRARY): $(OBJECTS_LIST) $(OBJ_DIR)/$(OS2DLLNAME)
+-
+-
+-$(OBJ_DIR)/$(OS2DLLNAME): $(OBJECTS_LIST)
+-	rm -f $(OBJ_DIR)/$(PROJECT).a
+-	ar cru $(OBJ_DIR)/$(PROJECT)_s.a $(OBJECTS_LIST)
+-	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zmap -Zdll $(EXPORTS_LIST) -o $@ $(OBJECTS_LIST) 
+-	emximp -o $(OBJ_DIR)/$(PROJECT).a $(EXPORTS_LIST)
+-	emximp -o $(OBJ_DIR)/$(PROJECT).lib $(EXPORTS_LIST)
+-#	cp $@ $(OBJ_DIR)
+-
+-endif
+-
+-# EOF
+diff -Naur \mzfntcfgft\freetype/builds/os2/os2-def.mk \usr\local\src\freetype/builds/os2/os2-def.mk
+--- \mzfntcfgft\freetype/builds/os2/os2-def.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/os2/os2-def.mk	2009-03-14 06:45:26.000000000 -0700
+@@ -18,15 +18,6 @@
  SEP       := $(strip \ )
  BUILD_DIR := $(TOP_DIR)/builds/os2
  PLATFORM  := os2
-+E_BUILD   := .exe
-+
-+ifdef SHELL
-+  COPY   := cp
-+  DELETE := rm
-+  CAT    := cat
-+  SEP    := /
-+  DLL    := yes
-+endif
+-E_BUILD   := .exe
+-
+-ifdef SHELL
+-  COPY   := cp
+-  DELETE := rm
+-  CAT    := cat
+-  SEP    := /
+-  DLL    := yes
+-endif
  
  # The executable file extension (for tools), *with* leading dot.
  #
-diff -Naur G:\usr\src\freetype-2.5.3/builds/os2/os2-gcc.mk G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk
---- G:\usr\src\freetype-2.5.3/builds/os2/os2-gcc.mk	2009-03-14 06:45:26.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2014-03-29 21:47:12.000000000 -0700
-@@ -12,15 +12,25 @@
+diff -Naur \mzfntcfgft\freetype/builds/os2/os2-gcc.mk \usr\local\src\freetype/builds/os2/os2-gcc.mk
+--- \mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/builds/os2/os2-gcc.mk	2009-03-14 06:45:26.000000000 -0700
+@@ -12,25 +12,15 @@
  # indicate that you have read the license and understand and accept it
  # fully.
  
-+# default definitions of the export list
-+#
-+OS2DLLNAME        = freetyp2.dll
-+EXPORTS_LIST      = $(OBJ_DIR)/freetype.def
-+EXPORTS_OPTIONS   = $(EXPORTS_LIST)
-+APINAMES_OPTIONS := -d$(OS2DLLNAME) -wO
+-# default definitions of the export list
+-#
+-OS2DLLNAME        = freetyp2.dll
+-EXPORTS_LIST      = $(OBJ_DIR)/freetype.def
+-EXPORTS_OPTIONS   = $(EXPORTS_LIST)
+-APINAMES_OPTIONS := -d$(OS2DLLNAME) -wO
  
  # include OS/2-specific definitions
  include $(TOP_DIR)/builds/os2/os2-def.mk
  
  # include gcc-specific definitions
  include $(TOP_DIR)/builds/compiler/gcc.mk
-+CFLAGS +=-DOS2 -mtune=generic -march=i686
+-CFLAGS +=-DOS2 -mtune=generic -march=i686
  
  # include linking instructions
-+ifeq ($(DLL),yes)
-+  include $(TOP_DIR)/builds/os2/linkdll.mk
-+else
+-ifeq ($(DLL),yes)
+-  include $(TOP_DIR)/builds/os2/linkdll.mk
+-else
  include $(TOP_DIR)/builds/link_dos.mk
--
-+endif
+-endif
++
  
  # EOF
-diff -Naur G:\usr\src\freetype-2.5.3/src/tools/apinames.c G:\mzfntcfgft\freetype/src/tools/apinames.c
---- G:\usr\src\freetype-2.5.3/src/tools/apinames.c	2013-06-04 00:56:02.000000000 -0700
-+++ G:\mzfntcfgft\freetype/src/tools/apinames.c	2014-03-29 21:47:14.000000000 -0700
-@@ -32,6 +32,7 @@
+diff -Naur \mzfntcfgft\freetype/src/tools/apinames.c \usr\local\src\freetype/src/tools/apinames.c
+--- \mzfntcfgft\freetype/src/tools/apinames.c	2014-12-06 21:34:26.000000000 -0800
++++ \usr\local\src\freetype/src/tools/apinames.c	2013-06-04 00:56:02.000000000 -0700
+@@ -32,7 +32,6 @@
    OUTPUT_WINDOWS_DEF,   /* output a Windows .DEF file for Visual C++ or Mingw */
    OUTPUT_BORLAND_DEF,   /* output a Windows .DEF file for Borland C++         */
    OUTPUT_WATCOM_LBC,    /* output a Watcom Linker Command File                */
-+  OUTPUT_OS2_DEF,       /* output an OS/2 .DEF file for GCC                   */
+-  OUTPUT_OS2_DEF,       /* output an OS/2 .DEF file for GCC                   */
    OUTPUT_NETWARE_IMP    /* output a NetWare ImportFile                        */
  
  } OutputFormat;
-@@ -198,6 +199,44 @@
+@@ -199,44 +198,6 @@
        }
        break;
  
-+      case OUTPUT_OS2_DEF:
-+      {
-+          /* we must omit the .dll suffix from the library name */
-+          char         temp[512];
-+          const char*  dot;
-+
-+
-+          if ( dll_name == NULL )
-+          {
-+            fprintf( stderr,
-+                     "you must provide a DLL name with the -d option!\n" );
-+            exit( 4 );
-+          }
-+
-+          dot = strchr( dll_name, '.' );
-+          if ( dot != NULL )
-+          {
-+            int  len = dot - dll_name;
-+
-+
-+            if ( len > (int)( sizeof ( temp ) - 1 ) )
-+              len = sizeof ( temp ) - 1;
-+
-+            memcpy( temp, dll_name, len );
-+            temp[len] = 0;
-+
-+            dll_name = (const char*)temp;
-+          }
-+
-+          fprintf( out, "LIBRARY %s INITINSTANCE TERMINSTANCE\n", dll_name );
-+          fprintf( out, "DESCRIPTION \"FreeType 2 DLL\"\n" );
-+          fprintf( out, "DATA MULTIPLE\n" );
-+          fprintf( out, "EXPORTS\n" );
-+          for ( nn = 0; nn < num_names; nn++ )
-+            fprintf( out, "  _%s\n", the_names[nn].name );
-+          }
-+        break;
-+
+-      case OUTPUT_OS2_DEF:
+-      {
+-          /* we must omit the .dll suffix from the library name */
+-          char         temp[512];
+-          const char*  dot;
+-
+-
+-          if ( dll_name == NULL )
+-          {
+-            fprintf( stderr,
+-                     "you must provide a DLL name with the -d option!\n" );
+-            exit( 4 );
+-          }
+-
+-          dot = strchr( dll_name, '.' );
+-          if ( dot != NULL )
+-          {
+-            int  len = dot - dll_name;
+-
+-
+-            if ( len > (int)( sizeof ( temp ) - 1 ) )
+-              len = sizeof ( temp ) - 1;
+-
+-            memcpy( temp, dll_name, len );
+-            temp[len] = 0;
+-
+-            dll_name = (const char*)temp;
+-          }
+-
+-          fprintf( out, "LIBRARY %s INITINSTANCE TERMINSTANCE\n", dll_name );
+-          fprintf( out, "DESCRIPTION \"FreeType 2 DLL\"\n" );
+-          fprintf( out, "DATA MULTIPLE\n" );
+-          fprintf( out, "EXPORTS\n" );
+-          for ( nn = 0; nn < num_names; nn++ )
+-            fprintf( out, "  _%s\n", the_names[nn].name );
+-          }
+-        break;
+-
      default:  /* LIST */
        for ( nn = 0; nn < num_names; nn++ )
          fprintf( out, "%s\n", the_names[nn].name );
-@@ -322,6 +361,7 @@
+@@ -361,7 +322,6 @@
     "           -w     : output .DEF file for Visual C++ and Mingw\n"
     "           -wB    : output .DEF file for Borland C++\n"
     "           -wW    : output Watcom Linker Response File\n"
-+   "           -wO    : ouput OS/2 .DEF file for GCC\n"
+-   "           -wO    : ouput OS/2 .DEF file for GCC\n"
     "           -wN    : output NetWare Import File\n"
     "\n";
  
-@@ -410,6 +450,11 @@
+@@ -450,11 +410,6 @@
              format = OUTPUT_NETWARE_IMP;
              break;
  
-+          case 'O':
-+          case 'o':
-+            format = OUTPUT_OS2_DEF;
-+            break;
-+
+-          case 'O':
+-          case 'o':
+-            format = OUTPUT_OS2_DEF;
+-            break;
+-
            case 0:
              break;
  
