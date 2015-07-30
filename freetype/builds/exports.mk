@@ -71,8 +71,8 @@ ifeq ($(PLATFORM),os2)
 	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
 	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
 else
- 	  @echo TT_New_Context >> $(EXPORTS_LIST)
- 	  @echo TT_RunIns >> $(EXPORTS_LIST)
+	  @echo TT_New_Context >> $(EXPORTS_LIST)
+	  @echo TT_RunIns >> $(EXPORTS_LIST)
 endif
 
   $(PROJECT_LIBRARY): $(EXPORTS_LIST)
