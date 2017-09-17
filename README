@@ -56,6 +56,8 @@ current Mozilla trunk, which already has the necessary info in about:license.)
 
 
 - History
+20171117  - Udate FontConfig version to 2.11.0 as required by VLC Patch by KO Myung-Hun
+20171117  - Add FcInitLoadConfigAndFonts() and FcConfigDestroy() Patch by KO Myung-Hun
 20150829  - Update to Freetype 2.6.0
 20141206  - Update to Freetype 2.5.4
 20140329  - Update to Freetype 2.5.3
