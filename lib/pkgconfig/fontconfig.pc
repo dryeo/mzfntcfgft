@@ -6,6 +6,6 @@ includedir=${exec_prefix}/fontconfig/include
 
 Name: FONTCONFIG
 Description: Provides FontConfig
-Version: 2.4.0
+Version: 2.11.0
 Libs: -L${libdir} -lmzfntcfg
 Cflags: -I${includedir}
