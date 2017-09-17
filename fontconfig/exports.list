@@ -48,3 +48,6 @@ EXPORTS
      _FcLangSetContains
      _FcLangSetDestroy
      _FcNameParse
+     _FcInitLoadConfigAndFonts
+     _FcConfigDestroy
+

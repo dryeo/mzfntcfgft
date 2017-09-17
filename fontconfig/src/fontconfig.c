@@ -1437,6 +1437,14 @@ fcExport FcBool FcInitBringUptoDate(void)
   return rc;
 }
 
+fcExport FcConfig *FcInitLoadConfigAndFonts(void)
+{
+  if (FcInit())
+    return FcConfigGetCurrent();
+
+  return NULL;
+}
+
 fcExport FcBool FcConfigUptoDate(FcConfig *config)
 {
   // Stub
@@ -1472,4 +1480,13 @@ fcExport FcFontSet *FcConfigGetFonts(FcConfig *config, FcSetName set)
   FcPatternDestroy(p);
   return s;
 }
+
+fcExport void FcConfigDestroy(FcConfig *config)
+{
+  if (pConfig) {
+    free(pConfig); // don't need this config any more
+    pConfig = NULL;
+  }
+}
+
 
