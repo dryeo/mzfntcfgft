@@ -9,6 +9,9 @@ lib/*.a
 src/*.a
 src/fontconfig_*
 src/*.def
+fontconfig/objs
+freetype/objs
+freetype/config.mk
 syntax: regexp
 \.swp$
 \.swo$
