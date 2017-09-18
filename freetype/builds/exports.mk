@@ -71,8 +71,6 @@ endif
   #
   $(EXPORTS_LIST): $(APINAMES_EXE) $(PUBLIC_HEADERS)
 	  $(subst /,$(SEP),$(APINAMES_EXE)) -o$@ $(APINAMES_OPTIONS) $(PUBLIC_HEADERS)
-	  @echo TT_New_Context >> $(EXPORTS_LIST)
-	  @echo TT_RunIns >> $(EXPORTS_LIST)
 ifeq ($(PLATFORM),os2)
 	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
 	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
