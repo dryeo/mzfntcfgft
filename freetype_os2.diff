@@ -1,6 +1,6 @@
-diff -Naur G:\usr\src\freetype-2.6/builds/detect.mk G:\mzfntcfgft\freetype/builds/detect.mk
---- G:\usr\src\freetype-2.6/builds/detect.mk	2015-03-10 22:47:10.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/detect.mk	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/builds/detect.mk ./freetype/builds/detect.mk
+--- ../freetype-2.8.1/builds/detect.mk	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/builds/detect.mk	2017-09-17 16:14:44.000000000 -0700
 @@ -90,6 +90,7 @@
    # directories.  Note that the calling order of the various `detect.mk'
    # files isn't predictable.
@@ -9,10 +9,10 @@ diff -Naur G:\usr\src\freetype-2.6/builds/detect.mk G:\mzfntcfgft\freetype/build
    include $(wildcard $(BUILD_CONFIG)/*/detect.mk)
  endif
  
-diff -Naur G:\usr\src\freetype-2.6/builds/exports.mk G:\mzfntcfgft\freetype/builds/exports.mk
---- G:\usr\src\freetype-2.6/builds/exports.mk	2015-03-10 22:47:10.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/exports.mk	2015-07-28 19:31:56.000000000 -0700
-@@ -40,7 +40,12 @@
+diff -Naur ../freetype-2.8.1/builds/exports.mk ./freetype/builds/exports.mk
+--- ../freetype-2.8.1/builds/exports.mk	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/builds/exports.mk	2017-09-17 16:20:16.000000000 -0700
+@@ -40,11 +40,16 @@
    endif
  
    # The list of public headers we're going to parse.
@@ -20,17 +20,19 @@ diff -Naur G:\usr\src\freetype-2.6/builds/exports.mk G:\mzfntcfgft\freetype/buil
 +  PUBLIC_HEADERS1 := $(wildcard $(PUBLIC_DIR)/*.h)
 +  PUBLIC_HEADERS = $(filter-out $(PUBLIC_DIR)/ftmac.h, $(PUBLIC_HEADERS1))
 +else
-   PUBLIC_HEADERS := $(wildcard $(PUBLIC_DIR)/*.h)
-+endf
+   PUBLIC_HEADERS := $(filter-out $(PUBLIC_DIR)/ftmac.h, \
+                                  $(wildcard $(PUBLIC_DIR)/*.h))
+   ifneq ($(ftmac_c),)
+     PUBLIC_HEADERS += $(PUBLIC_DIR)/ftmac.h
+   endif
++endif
  
    # The `apinames' source and executable.  We use $E_BUILD as the host
    # executable suffix, which *includes* the final dot.
-@@ -62,8 +67,13 @@
-   #
-   $(EXPORTS_LIST): $(APINAMES_EXE) $(PUBLIC_HEADERS)
+@@ -68,6 +73,13 @@
  	  $(subst /,$(SEP),$(APINAMES_EXE)) -o$@ $(APINAMES_OPTIONS) $(PUBLIC_HEADERS)
--	  @echo TT_New_Context >> $(EXPORTS_LIST)
--	  @echo TT_RunIns >> $(EXPORTS_LIST)
+ 	  @echo TT_New_Context >> $(EXPORTS_LIST)
+ 	  @echo TT_RunIns >> $(EXPORTS_LIST)
 +ifeq ($(PLATFORM),os2)
 +	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
 +	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
@@ -41,9 +43,9 @@ diff -Naur G:\usr\src\freetype-2.6/builds/exports.mk G:\mzfntcfgft\freetype/buil
  
    $(PROJECT_LIBRARY): $(EXPORTS_LIST)
  
-diff -Naur G:\usr\src\freetype-2.6/builds/modules.mk G:\mzfntcfgft\freetype/builds/modules.mk
---- G:\usr\src\freetype-2.6/builds/modules.mk	2015-03-10 22:47:10.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/modules.mk	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/builds/modules.mk ./freetype/builds/modules.mk
+--- ../freetype-2.8.1/builds/modules.mk	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/builds/modules.mk	2017-09-17 16:22:26.000000000 -0700
 @@ -29,8 +29,8 @@
  	$(FTMODULE_H_DONE)
  
@@ -55,9 +57,9 @@ diff -Naur G:\usr\src\freetype-2.6/builds/modules.mk G:\mzfntcfgft\freetype/buil
    REMOVE_MODULE := @-$(DELETE) $(subst /,$(SEP),$(FTMODULE_H))
  else
    OPEN_MODULE   := @echo "
-diff -Naur G:\usr\src\freetype-2.6/builds/os2/detect.mk G:\mzfntcfgft\freetype/builds/os2/detect.mk
---- G:\usr\src\freetype-2.6/builds/os2/detect.mk	2015-03-10 22:47:10.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/detect.mk	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/builds/os2/detect.mk ./freetype/builds/os2/detect.mk
+--- ../freetype-2.8.1/builds/os2/detect.mk	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/builds/os2/detect.mk	2017-09-17 16:25:52.000000000 -0700
 @@ -65,7 +65,17 @@
      .PHONY: devel
    endif
@@ -77,16 +79,16 @@ diff -Naur G:\usr\src\freetype-2.6/builds/os2/detect.mk G:\mzfntcfgft\freetype/b
  
  endif   # test PLATFORM os2
  
-diff -Naur G:\usr\src\freetype-2.6/builds/os2/linkdll.mk G:\mzfntcfgft\freetype/builds/os2/linkdll.mk
---- G:\usr\src\freetype-2.6/builds/os2/linkdll.mk	1969-12-31 16:00:00.000000000 -0800
-+++ G:\mzfntcfgft\freetype/builds/os2/linkdll.mk	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/builds/os2/linkdll.mk ./freetype/builds/os2/linkdll.mk
+--- ../freetype-2.8.1/builds/os2/linkdll.mk	1969-12-31 16:00:00.000000000 -0800
++++ ./freetype/builds/os2/linkdll.mk	2017-09-17 16:28:30.000000000 -0700
 @@ -0,0 +1,49 @@
 +#
 +# FreeType 2 configuration rules for OS/2; gcc and dll
 +#
 +
 +
-+# Copyright 1996-2000 by
++# Copyright 1996-2017 by
 +# David Turner, Robert Wilhelm, and Werner Lemberg.
 +#
 +# This file is part of the FreeType project, and may only be used, modified,
@@ -130,9 +132,9 @@ diff -Naur G:\usr\src\freetype-2.6/builds/os2/linkdll.mk G:\mzfntcfgft\freetype/
 +endif
 +
 +# EOF
-diff -Naur G:\usr\src\freetype-2.6/builds/os2/os2-def.mk G:\mzfntcfgft\freetype/builds/os2/os2-def.mk
---- G:\usr\src\freetype-2.6/builds/os2/os2-def.mk	2015-03-10 22:47:10.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-def.mk	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/builds/os2/os2-def.mk ./freetype/builds/os2/os2-def.mk
+--- ../freetype-2.8.1/builds/os2/os2-def.mk	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/builds/os2/os2-def.mk	2017-09-17 16:30:10.000000000 -0700
 @@ -18,6 +18,15 @@
  SEP       := $(strip \ )
  BUILD_DIR := $(TOP_DIR)/builds/os2
@@ -149,9 +151,9 @@ diff -Naur G:\usr\src\freetype-2.6/builds/os2/os2-def.mk G:\mzfntcfgft\freetype/
  
  # The executable file extension (for tools), *with* leading dot.
  #
-diff -Naur G:\usr\src\freetype-2.6/builds/os2/os2-gcc.mk G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk
---- G:\usr\src\freetype-2.6/builds/os2/os2-gcc.mk	2015-03-10 22:47:10.000000000 -0700
-+++ G:\mzfntcfgft\freetype/builds/os2/os2-gcc.mk	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/builds/os2/os2-gcc.mk ./freetype/builds/os2/os2-gcc.mk
+--- ../freetype-2.8.1/builds/os2/os2-gcc.mk	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/builds/os2/os2-gcc.mk	2017-09-17 16:32:52.000000000 -0700
 @@ -12,15 +12,25 @@
  # indicate that you have read the license and understand and accept it
  # fully.
@@ -179,9 +181,9 @@ diff -Naur G:\usr\src\freetype-2.6/builds/os2/os2-gcc.mk G:\mzfntcfgft\freetype/
 +endif
  
  # EOF
-diff -Naur G:\usr\src\freetype-2.6/src/tools/apinames.c G:\mzfntcfgft\freetype/src/tools/apinames.c
---- G:\usr\src\freetype-2.6/src/tools/apinames.c	2015-05-28 01:56:08.000000000 -0700
-+++ G:\mzfntcfgft\freetype/src/tools/apinames.c	2015-07-28 19:31:56.000000000 -0700
+diff -Naur ../freetype-2.8.1/src/tools/apinames.c ./freetype/src/tools/apinames.c
+--- ../freetype-2.8.1/src/tools/apinames.c	2017-07-09 03:28:14.000000000 -0700
++++ ./freetype/src/tools/apinames.c	2017-09-17 16:38:48.000000000 -0700
 @@ -32,6 +32,7 @@
    OUTPUT_WINDOWS_DEF,   /* output a Windows .DEF file for Visual C++ or Mingw */
    OUTPUT_BORLAND_DEF,   /* output a Windows .DEF file for Borland C++         */

@@ -3,7 +3,7 @@
 #
 
 
-# Copyright 2005-2015 by
+# Copyright 2005-2017 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -44,7 +44,11 @@ ifeq ($(PLATFORM),os2)
   PUBLIC_HEADERS1 := $(wildcard $(PUBLIC_DIR)/*.h)
   PUBLIC_HEADERS = $(filter-out $(PUBLIC_DIR)/ftmac.h, $(PUBLIC_HEADERS1))
 else
-  PUBLIC_HEADERS := $(wildcard $(PUBLIC_DIR)/*.h)
+  PUBLIC_HEADERS := $(filter-out $(PUBLIC_DIR)/ftmac.h, \
+                                 $(wildcard $(PUBLIC_DIR)/*.h))
+  ifneq ($(ftmac_c),)
+    PUBLIC_HEADERS += $(PUBLIC_DIR)/ftmac.h
+  endif
 endif
 
   # The `apinames' source and executable.  We use $E_BUILD as the host
@@ -67,12 +71,14 @@ endif
   #
   $(EXPORTS_LIST): $(APINAMES_EXE) $(PUBLIC_HEADERS)
 	  $(subst /,$(SEP),$(APINAMES_EXE)) -o$@ $(APINAMES_OPTIONS) $(PUBLIC_HEADERS)
+	  @echo TT_New_Context >> $(EXPORTS_LIST)
+	  @echo TT_RunIns >> $(EXPORTS_LIST)
 ifeq ($(PLATFORM),os2)
 	  @echo '  _TT_New_Context' >> $(EXPORTS_LIST)
 	  @echo '  _TT_RunIns' >> $(EXPORTS_LIST)
 else
-	  @echo TT_New_Context >> $(EXPORTS_LIST)
-	  @echo TT_RunIns >> $(EXPORTS_LIST)
+ 	  @echo TT_New_Context >> $(EXPORTS_LIST)
+ 	  @echo TT_RunIns >> $(EXPORTS_LIST)
 endif
 
   $(PROJECT_LIBRARY): $(EXPORTS_LIST)

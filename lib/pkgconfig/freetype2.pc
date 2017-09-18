@@ -5,7 +5,7 @@ includedir=${prefix}/freetype/include
 
 Name: FreeType 2
 Description: A free, high-quality, and portable font engine.
-Version: 17.1.11
+Version: 21.0.15
 Requires:
 Libs: -L${libdir} -lmozft
 Libs.private:  
